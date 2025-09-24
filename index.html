@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geovisor de Vulnerabilidad a la Intrusión Salina en México</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Vulnerabilidad a la Intrusión Salina en Acuíferos de México</h1>
+        
+        <div class="selector-container">
+            <label for="acuifero-select">Selecciona un acuífero:</label>
+            <select id="acuifero-select">
+                <option value="">-- Todos los acuíferos --</option>
+            </select>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <!-- Código de la aplicación -->
+    <script src="app.js"></script>
+
+</body>
+</html>```
+
+#### **`style.css`**
+
+Este archivo se encarga de la apariencia visual del mapa, la leyenda y los controles.
+
+```css
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background-color: white;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.selector-container {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#acuifero-select {
+    padding: 8px;
+    font-size: 16px;
+    width: 50%;
+    max-width: 400px;
+}
+
+#map {
+    height: 600px;
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+/* Estilos de la Leyenda */
+.legend {
+    line-height: 1.5;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.legend h4 {
+    margin: 0 0 5px;
+    font-size: 14px;
+}
+
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.9;
+    border: 1px solid #333;
+}
