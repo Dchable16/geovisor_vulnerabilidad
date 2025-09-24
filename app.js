@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 4. Estilo para los polígonos
     function style(feature) {
         return {
-            fillColor: getColor(feature.properties.VULNERA), // IMPORTANTE: Usa el nombre exacto de tu campo
+            fillColor: getColor(feature.properties.Vulberabil), // IMPORTANTE: Usa el nombre exacto de tu campo
             weight: 1.5,
             opacity: 1,
             color: 'white',
@@ -59,12 +59,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 6. Asignar listeners a cada capa
     function onEachFeature(feature, layer) {
-        if (feature.properties && feature.properties.NOMBRE && feature.properties.VULNERA) { // IMPORTANTE: usa los nombres de campo correctos
-            layer.bindPopup(`<strong>Acuífero:</strong> ${feature.properties.NOMBRE}<br><strong>Vulnerabilidad:</strong> ${feature.properties.VULNERA}`);
+        if (feature.properties && feature.properties.Vulberabil) { 
+            layer.bindPopup(`<strong>ID de Acuífero (fid):</strong> ${feature.properties.fid}<br><strong>Vulnerabilidad:</strong> ${feature.properties.Vulberabil}`);
             
             // Llenar el objeto de datos para el selector
             acuiferoData[feature.properties.NOMBRE] = layer;
-        }
+        acuiferoData[feature.properties.fid] = layer;
+    }
 
         layer.on({
             mouseover: highlightFeature,
