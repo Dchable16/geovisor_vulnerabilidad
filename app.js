@@ -76,27 +76,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 7. Cargar el GeoJSON de forma asíncrona
     fetch('data/vulnerabilidad.geojson')
-        .then(response => response.json())
+        .then(response => {
+            // Primero, comprobamos si el servidor respondió correctamente (ej. código 200 OK)
+            if (!response.ok) {
+                // Si la respuesta no es OK (ej. un 404), lanzamos un error claro
+                throw new Error(`Error de red - Estatus: ${response.status}. ¿Es correcta la ruta al archivo GeoJSON?`);
+            }
+            // Si todo está bien, procedemos a analizar la respuesta como JSON
+            return response.json();
+        })
         .then(data => {
+            // Esta parte se ejecuta solo si el fetch fue exitoso y el JSON es válido
             geojsonLayer = L.geoJson(data, {
                 style: style,
                 onEachFeature: onEachFeature
             }).addTo(map);
-
-            // 8. Poblar el menú desplegable
+    
             const selector = document.getElementById('acuifero-select');
-            const acuiferoIds = Object.keys(acuiferoData).sort((a, b) => a - b);
-
-            selector.innerHTML = '<option value="">Seleccione un acuífero por ID</option>'; // Texto inicial
-
-            acuiferoIds.forEach(id => {
+            const acuiferoNombres = Object.keys(acuiferoData).sort();
+    
+            acuiferoNombres.forEach(nombre => {
                 const option = document.createElement('option');
-                option.value = id;
-                option.textContent = `Acuífero ID: ${id}`; // Texto más descriptivo
+                option.value = nombre;
+                option.textContent = nombre;
                 selector.appendChild(option);
             });
-            
-        }).catch(error => console.error('Error cargando el GeoJSON:', error));
+    
+        })
+    .catch(error => {
+        // Este catch ahora recibirá tanto errores de red como errores de sintaxis JSON
+        console.error('Error al cargar o procesar el GeoJSON:', error);
+        alert('No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.');
+    });
         
     // 9. Funcionalidad del selector de acuíferos
     document.getElementById('acuifero-select').addEventListener('change', function(e) {
