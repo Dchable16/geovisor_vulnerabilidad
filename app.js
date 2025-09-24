@@ -85,12 +85,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // 8. Poblar el menú desplegable
             const selector = document.getElementById('acuifero-select');
-            const acuiferoNombres = Object.keys(acuiferoData).sort();
+            const acuiferoIds = Object.keys(acuiferoData).sort((a, b) => a - b);
 
-            acuiferoNombres.forEach(nombre => {
+            selector.innerHTML = '<option value="">Seleccione un acuífero por ID</option>'; // Texto inicial
+
+            acuiferoIds.forEach(id => {
                 const option = document.createElement('option');
-                option.value = nombre;
-                option.textContent = nombre;
+                option.value = id;
+                option.textContent = `Acuífero ID: ${id}`; // Texto más descriptivo
                 selector.appendChild(option);
             });
             
@@ -98,13 +100,13 @@ document.addEventListener('DOMContentLoaded', function () {
         
     // 9. Funcionalidad del selector de acuíferos
     document.getElementById('acuifero-select').addEventListener('change', function(e) {
-        const nombreSeleccionado = e.target.value;
-        if (nombreSeleccionado && acuiferoData[nombreSeleccionado]) {
-            const layer = acuiferoData[nombreSeleccionado];
+        const idSeleccionado = e.target.value;
+        if (idSeleccionado && acuiferoData[idSeleccionado]) {
+            const layer = acuiferoData[idSeleccionado];
             map.fitBounds(layer.getBounds());
             layer.openPopup();
         } else {
-            map.setView([23.6345, -102.5528], 5); // Vuelve a la vista general si se deselecciona
+            map.setView([23.6345, -102.5528], 5);
         }
     });
 
