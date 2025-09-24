@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Inicialización del mapa centrado en México
+    // 1. Inicialización del mapa
     const map = L.map('map').setView([23.6345, -102.5528], 5);
 
-    // 2. Añadir mapa base de tonos neutros (CartoDB Positron)
+    // 2. Mapa base
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
@@ -10,22 +10,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }).addTo(map);
 
     let geojsonLayer;
-    let acuiferoData = {}; // Para almacenar referencias a las capas
+    let acuiferoData = {}; // Objeto para almacenar las capas por nombre
 
-    // 3. Función para obtener el color basado en el nivel de vulnerabilidad
+    // 3. Función de color según vulnerabilidad
     function getColor(vulnerabilidad) {
         return vulnerabilidad == 5 ? '#D90404' : // Rojo
                vulnerabilidad == 4 ? '#F25C05' : // Naranja
                vulnerabilidad == 3 ? '#F2B705' : // Amarillo
                vulnerabilidad == 2 ? '#99C140' :
                vulnerabilidad == 1 ? '#2DC937' : // Verde
-                                     '#FFFFFF'; // Blanco por defecto
+                                     '#FFFFFF'; 
     }
 
-    // 4. Estilo para los polígonos
+    // 4. Estilo de los polígonos
     function style(feature) {
         return {
-            fillColor: getColor(feature.properties.Vulberabil), // IMPORTANTE: Usa el nombre exacto de tu campo
+            fillColor: getColor(feature.properties.Vulberabil),
             weight: 1.5,
             opacity: 1,
             color: 'white',
@@ -33,16 +33,14 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
     
-    // 5. Funciones de interactividad (resaltado)
+    // 5. Funciones de interactividad
     function highlightFeature(e) {
         const layer = e.target;
         layer.setStyle({
             weight: 4,
             color: '#333',
-            dashArray: '',
             fillOpacity: 0.8
         });
-
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
             layer.bringToFront();
         }
@@ -52,20 +50,25 @@ document.addEventListener('DOMContentLoaded', function () {
         geojsonLayer.resetStyle(e.target);
     }
     
-    // Función de zoom al hacer clic
     function zoomToFeature(e) {
         map.fitBounds(e.target.getBounds());
     }
 
-    // 6. Asignar listeners a cada capa
+    // 6. Asignar popups y eventos a cada polígono (ACTUALIZADO)
     function onEachFeature(feature, layer) {
-        if (feature.properties && feature.properties.Vulberabil) { 
-            layer.bindPopup(`<strong>ID de Acuífero (fid):</strong> ${feature.properties.fid}<br><strong>Vulnerabilidad:</strong> ${feature.properties.Vulberabil}`);
+        const props = feature.properties;
+        // Verifica que existan las nuevas propiedades antes de crear el popup
+        if (props && props.NOM_ACUIF && props.CLAVE_ACUIF) { 
+            // Popup actualizado para mostrar Nombre, Clave y Vulnerabilidad
+            layer.bindPopup(
+                `<strong>Acuífero:</strong> ${props.NOM_ACUIF}<br>` +
+                `<strong>Clave:</strong> ${props.CLAVE_ACUIF}<br>` +
+                `<strong>Vulnerabilidad:</strong> ${props.Vulberabil}`
+            );
             
-            // Llenar el objeto de datos para el selector
-            acuiferoData[feature.properties.NOMBRE] = layer;
-        acuiferoData[feature.properties.fid] = layer;
-    }
+            // Llenar el objeto de datos para el selector usando el nombre del acuífero
+            acuiferoData[props.NOM_ACUIF] = layer;
+        }
 
         layer.on({
             mouseover: highlightFeature,
@@ -74,73 +77,61 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Cargar el GeoJSON de forma asíncrona
-    fetch('data/vulnerabilidad.geojson')
+    // 7. Cargar el GeoJSON UNIFICADO
+    fetch('data/vulnerabilidad.geojson') // Esto ahora funcionará si completaste el Paso 1
         .then(response => {
-            // Primero, comprobamos si el servidor respondió correctamente (ej. código 200 OK)
             if (!response.ok) {
-                // Si la respuesta no es OK (ej. un 404), lanzamos un error claro
-                throw new Error(`Error de red - Estatus: ${response.status}. ¿Es correcta la ruta al archivo GeoJSON?`);
+                throw new Error(`Error de red - Estatus: ${response.status}. Asegúrate de que 'data/vulnerabilidad.geojson' existe.`);
             }
-            // Si todo está bien, procedemos a analizar la respuesta como JSON
             return response.json();
         })
         .then(data => {
-            // Esta parte se ejecuta solo si el fetch fue exitoso y el JSON es válido
             geojsonLayer = L.geoJson(data, {
                 style: style,
                 onEachFeature: onEachFeature
             }).addTo(map);
     
+            // Poblar el menú desplegable (ACTUALIZADO)
             const selector = document.getElementById('acuifero-select');
+            // Obtener los nombres de los acuíferos y ordenarlos alfabéticamente
             const acuiferoNombres = Object.keys(acuiferoData).sort();
     
             acuiferoNombres.forEach(nombre => {
                 const option = document.createElement('option');
                 option.value = nombre;
-                option.textContent = nombre;
+                option.textContent = nombre; // El texto visible será el nombre del acuífero
                 selector.appendChild(option);
             });
     
         })
-    .catch(error => {
-        // Este catch ahora recibirá tanto errores de red como errores de sintaxis JSON
-        console.error('Error al cargar o procesar el GeoJSON:', error);
-        alert('No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.');
-    });
+        .catch(error => {
+            console.error('Error al cargar o procesar el GeoJSON:', error);
+            alert('No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.');
+        });
         
-    // 9. Funcionalidad del selector de acuíferos
+    // 8. Funcionalidad del selector de acuíferos (ACTUALIZADO)
     document.getElementById('acuifero-select').addEventListener('change', function(e) {
-        const idSeleccionado = e.target.value;
-        if (idSeleccionado && acuiferoData[idSeleccionado]) {
-            const layer = acuiferoData[idSeleccionado];
+        const nombreSeleccionado = e.target.value;
+        if (nombreSeleccionado && acuiferoData[nombreSeleccionado]) {
+            const layer = acuiferoData[nombreSeleccionado];
             map.fitBounds(layer.getBounds());
             layer.openPopup();
         } else {
+            // Si se selecciona "Todos los acuíferos", se reinicia la vista
             map.setView([23.6345, -102.5528], 5);
         }
     });
 
-
-    // 10. Añadir la leyenda al mapa
+    // 9. Leyenda (sin cambios)
     const legend = L.control({position: 'bottomright'});
-
     legend.onAdd = function (map) {
         const div = L.DomUtil.create('div', 'info legend');
         const grades = [1, 2, 3, 4, 5];
-        const labels = [];
-        
         div.innerHTML = '<h4>Vulnerabilidad</h4>';
-
         for (let i = 0; i < grades.length; i++) {
-            div.innerHTML +=
-                '<i style="background:' + getColor(grades[i]) + '"></i> ' +
-                grades[i] + (grades[i+1] ? '' : ' (Muy Alta)<br>') ;
+            div.innerHTML += `<i style="background:${getColor(grades[i])}"></i> Nivel ${grades[i]}<br>`;
         }
-        div.innerHTML += '<i style="background:#2DC937"></i> 1 (Muy Baja)';
-
         return div;
     };
-
     legend.addTo(map);
 });
