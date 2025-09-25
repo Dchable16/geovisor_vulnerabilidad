@@ -27,16 +27,10 @@ document.addEventListener('DOMContentLoaded', function () {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     });
-    const mapaInegi = L.tileLayer.wms('https://gaia.inegi.org.mx/NLB/tunnel/wms/wms61?', {
-        layers: 'MapaBaseTopografico', // Nombre de la capa específica que queremos ver
-        format: 'image/png',
-        transparent: true,
-        attribution: 'Fuente: INEGI - Mapa Digital de México'
-    });	
     const baseMaps = {
         "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
         "Topográfico (ESRI)": esri_Topo, "Terreno (ESRI)": esri_Terrain, "Océanos (ESRI)": esri_Oceans, "Gris Oscuro (ESRI)": esri_DarkGray,
-		"Open Street Map":openStreetMap, "INEGI":mapaInegi
+		"Open Street
     };
 
     // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
