@@ -1,32 +1,34 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE (CON SELECCIÓN AMPLIADA DE ESRI) ---
+    // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE ---
     
     const cartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     });
-    const esri_Street = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, etc.'
+    
+    const openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     });
+    
+    const inegi_MapaBase = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/7/{z}/{y}/{x}.png', {
+        attribution: 'Fuente: INEGI - Mapa Digital de México',
+        tms: true
+    });
+    
     const esri_Imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
     });
     const esri_Topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
 	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, etc.'
     });
-    const esri_Terrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, NOAA'
-    });
-    const esri_Oceans = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri'
-    });
-    const esri_DarkGray = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
-    });
 
     const baseMaps = {
-        "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
-        "Topográfico (ESRI)": esri_Topo, "Terreno (ESRI)": esri_Terrain, "Océanos (ESRI)": esri_Oceans, "Gris Oscuro (ESRI)": esri_DarkGray
+        "Neutral (defecto)": cartoDB_Positron,
+        "OpenStreetMap": openStreetMap,
+        "INEGI (México)": inegi_MapaBase,
+        "Satélite (ESRI)": esri_Imagery,
+        "Topográfico (ESRI)": esri_Topo
     };
 
     // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
@@ -34,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
     L.control.layers(baseMaps).addTo(map);
     let geojsonLayer; let acuiferoData = {};
 
-    // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
+    // --- SECCIÓN 3: ESTILOS Y COLORES ---
     function getColor(vulnerabilidad) {
         const value = parseInt(vulnerabilidad, 10);
         switch (value) {
@@ -44,8 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function style(feature) {
         return {
-            fillColor: getColor(feature.properties.VULNERABIL), weight: 1.5,
-            opacity: 1, color: 'white', fillOpacity: 0.8
+            fillColor: getColor(feature.properties.VULNERABIL),
+            weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.8
         };
     }
 
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- SECCIÓN 5: CARGA DE DATOS Y LÓGICA DEL SELECTOR ---
     fetch('data/Vulnerabilidad.geojson')
         .then(response => {
-            if (!response.ok) { throw new Error(`Error de red - Estatus ${response.status}.`); }
+            if (!response.ok) { throw new Error(`Error de red - Estatus ${response.status}. No se pudo encontrar el archivo GeoJSON.`); }
             return response.json();
         })
         .then(data => {
