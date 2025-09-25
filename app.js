@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let geojsonLayer;
     let acuiferoData = {};
 
-    // 3. Función para obtener el color (Mejorada)
+    // 3. Función para obtener el color
     function getColor(vulnerabilidad) {
         // Se convierte el valor a número para una comparación segura
         const value = parseInt(vulnerabilidad, 10);
@@ -21,13 +21,14 @@ document.addEventListener('DOMContentLoaded', function () {
                value === 3 ? '#F2B705' :
                value === 2 ? '#99C140' :
                value === 1 ? '#2DC937' :
-                             '#CCCCCC'; // Gris por defecto si no hay valor
+                             '#CCCCCC'; // Gris por defecto
     }
 
-    // 4. Estilo para los polígonos
+    // 4. Estilo para los polígonos (CORREGIDO)
     function style(feature) {
         return {
-            fillColor: getColor(feature.properties.Vulnerabil),
+            // CORRECCIÓN #1: Usar 'VULNERABIL' en mayúsculas
+            fillColor: getColor(feature.properties.VULNERABIL),
             weight: 1.5,
             opacity: 1,
             color: 'white',
@@ -39,9 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function highlightFeature(e) {
         const layer = e.target;
         layer.setStyle({ weight: 4, color: '#333', fillOpacity: 0.9 });
-        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-            layer.bringToFront();
-        }
+        layer.bringToFront();
     }
 
     function resetHighlight(e) {
@@ -58,9 +57,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (props && props.NOM_ACUIF) {
             layer.bindPopup(
                 `<strong>Acuífero:</strong> ${props.NOM_ACUIF}<br>` +
-                // CORRECCIÓN: Se cambió 'CLAVE_ACUIF' a 'CLAVE_ACUI'
+                // CORRECCIÓN #2: Usar 'CLAVE_ACUI' (sin la 'F' final)
                 `<strong>Clave:</strong> ${props.CLAVE_ACUI}<br>` +
-                `<strong>Vulnerabilidad:</strong> ${props.Vulnerabil}`
+                // CORRECCIÓN #1: Usar 'VULNERABIL' en mayúsculas
+                `<strong>Vulnerabilidad:</strong> ${props.VULNERABIL}`
             );
             acuiferoData[props.NOM_ACUIF] = layer;
         }
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 7. Cargar el GeoJSON
-    fetch('data/Vulnerabilidad.geojson') // Asegúrate que el nombre coincide (V mayúscula)
+    fetch('data/Vulnerabilidad.geojson')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Error de red. No se encontró 'data/Vulnerabilidad.geojson'.`);
@@ -80,9 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         })
         .then(data => {
-            if (!data.features) {
-                throw new Error("El archivo GeoJSON no tiene la estructura correcta (falta 'features').");
-            }
             geojsonLayer = L.geoJson(data, {
                 style: style,
                 onEachFeature: onEachFeature
