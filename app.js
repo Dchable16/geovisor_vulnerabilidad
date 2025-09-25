@@ -190,10 +190,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             this.data.aquifers[NOM_ACUIF].push(layer);
 
-            // Añadir eventos de hover
             layer.on({
-                mouseover: e => e.target.setStyle(this.CONFIG.styles.hover),
-                mouseout: e => this.render() // La forma más simple de restaurar es redibujar todo
+                mouseover: e => {
+                    const highlightedLayer = e.target;
+                    highlightedLayer.setStyle(this.CONFIG.styles.hover);
+                    
+                    // Esta línea trae la capa al frente, por encima de sus vecinas.
+                    highlightedLayer.bringToFront(); 
+                },
+                mouseout: e => this.render() // Al redibujar, el orden se restablece automáticamente.
             });
         },
         
