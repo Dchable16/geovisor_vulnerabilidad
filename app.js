@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE (CON SELECCIÓN AMPLIADA DE ESRI) ---
+	const openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+		maxZoom: 19, attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' });
+    
+	const inegi_MapaBase = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/7/{z}/{y}/{x}.png', { 
+		attribution: 'Fuente: INEGI - Mapa Digital de México', tms: true });
     
     const cartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -33,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const map = L.map('map', { center: [23.6345, -102.5528], zoom: 5, layers: [cartoDB_Positron] });
     L.control.layers(baseMaps).addTo(map);
     let geojsonLayer; let acuiferoData = {};
+	 let currentOpacity = 0.7; 
 
     // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
     function getColor(vulnerabilidad) {
@@ -51,11 +57,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- SECCIÓN 4: INTERACTIVIDAD DEL MAPA ---
     function highlightFeature(e) {
-        const layer = e.target;
-        layer.setStyle({ weight: 5, color: '#000', dashArray: '', fillOpacity: 0.9 });
-        if (!L.Browser.ie) { layer.bringToFront(); }
+        const originalStyle = style(e.target.feature);
+        geojsonLayer.resetStyle(e.target); // Resetea color y borde
+        e.target.setStyle({ fillOpacity: originalStyle.fillOpacity }); // Restaura la opacidad correcta
     }
-    function resetHighlight(e) { geojsonLayer.resetStyle(e.target); }
+    
     function onEachFeature(feature, layer) {
         const props = feature.properties;
         if (props && props.NOM_ACUIF && props.VULNERABIL) {
@@ -123,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     opacitySlider.addEventListener('input', function(e) {
         const newOpacity = parseFloat(e.target.value);
+		currentOpacity = newOpacity; 
         opacityValueSpan.textContent = Math.round(newOpacity * 100) + '%';
         if (geojsonLayer) {
             geojsonLayer.setStyle({
