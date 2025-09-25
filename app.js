@@ -33,14 +33,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		"Open Street Maps": openStreetMap
     };
 
-	 const mutedStyle = { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 };
+	const mutedStyle = { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 };
+	const selectionHighlightStyle = {
+        color: '#00FFFF', // Un color cian/azul brillante
+        weight: 4,        // Un borde más grueso
+        opacity: 1        // Asegura que el borde sea opaco
+    };
 
     // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
     const map = L.map('map', { center: [23.6345, -102.5528], zoom: 5, layers: [cartoDB_Positron] });
     L.control.layers(baseMaps).addTo(map);
     let geojsonLayer; let acuiferoData = {};
 	let currentOpacity = 0.6; 
-	let selectedVulnerability = 'all'; 
+	let selectedVulnerability = 'all';
+	let currentlySelectedLayers = null;
 
     // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
     function getColor(vulnerabilidad) {
@@ -70,12 +76,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetHighlight(e) {
         const layer = e.target;
         const vulnerability = layer.feature.properties.VULNERABIL;
+
+        // Si esta capa es parte de la selección activa del dropdown, restaurar su contorno azul.
+        if (currentlySelectedLayers && currentlySelectedLayers.includes(layer)) {
+            layer.setStyle(selectionHighlightStyle);
+            return; // No hacer nada más
+        }
         
-        // Comprobar si este polígono debe estar "iluminado" o "atenuado"
+        // Si no, aplicar la lógica normal del filtro
         if (selectedVulnerability === 'all' || vulnerability == selectedVulnerability) {
-            geojsonLayer.resetStyle(layer); // Restaurar el estilo colorido normal
+            geojsonLayer.resetStyle(layer);
         } else {
-            layer.setStyle(mutedStyle); // Restaurar al estilo atenuado
+            layer.setStyle(mutedStyle);
         }
     }
     
@@ -116,11 +128,32 @@ document.addEventListener('DOMContentLoaded', function () {
         
     document.getElementById('acuifero-select').addEventListener('change', function(e) {
         const nombreSeleccionado = e.target.value;
+
+        // Paso 1: Limpiar cualquier resaltado azul anterior
+        if (currentlySelectedLayers) {
+            currentlySelectedLayers.forEach(layer => {
+                geojsonLayer.resetStyle(layer); // Esto devuelve el polígono a su estilo normal (colorido o atenuado)
+            });
+            currentlySelectedLayers = null;
+        }
+
+        // Paso 2: Si se seleccionó un acuífero válido, hacer zoom y aplicar el nuevo resaltado
         if (nombreSeleccionado && acuiferoData[nombreSeleccionado]) {
-            const layers = acuiferoData[nombreSeleccionado];
-            const featureGroup = L.featureGroup(layers);
+            const layersToHighlight = acuiferoData[nombreSeleccionado];
+            
+            // Hacer zoom
+            const featureGroup = L.featureGroup(layersToHighlight);
             map.fitBounds(featureGroup.getBounds().pad(0.1));
+
+            // Aplicar el estilo de contorno azul y guardarlos
+            layersToHighlight.forEach(layer => {
+                layer.setStyle(selectionHighlightStyle);
+                layer.bringToFront();
+            });
+            currentlySelectedLayers = layersToHighlight;
+
         } else {
+            // Si se seleccionó "-- Mostrar todos...", volver a la vista general
             map.setView([23.6345, -102.5528], 5);
         }
     });
@@ -158,15 +191,17 @@ document.addEventListener('DOMContentLoaded', function () {
 	// --- SECCIÓN 8: LÓGICA DEL FILTRO DE VULNERABILIDAD ---
 
     function applyFilter() {
-        if (!geojsonLayer) return; // Salir si la capa aún no se ha cargado
+        if (!geojsonLayer) return;
 
         geojsonLayer.eachLayer(layer => {
             const vulnerability = layer.feature.properties.VULNERABIL;
+            // No modificar el estilo de las capas con contorno azul
+            if (currentlySelectedLayers && currentlySelectedLayers.includes(layer)) {
+                return; // Saltar y dejar el contorno azul intacto
+            }
             if (selectedVulnerability === 'all' || vulnerability == selectedVulnerability) {
-                // Si coincide o si mostramos todos, aplicar estilo normal (usando la opacidad actual)
-                layer.setStyle(style(layer.feature));
+                layer.setStyle(style(layer.feature)); // Aplicar estilo normal con la opacidad correcta
             } else {
-                // Si no coincide, aplicar estilo atenuado
                 layer.setStyle(mutedStyle);
             }
         });
