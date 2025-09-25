@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const map = L.map('map', { center: [23.6345, -102.5528], zoom: 5, layers: [cartoDB_Positron] });
     L.control.layers(baseMaps).addTo(map);
     let geojsonLayer; let acuiferoData = {};
-	 let currentOpacity = 0.7; 
+	let currentOpacity = 0.7; 
 
     // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
     function getColor(vulnerabilidad) {
@@ -62,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function resetHighlight(e) {
+        // En lugar de resetStyle, re-aplicamos el estilo original
+        // pero asegurándonos que use la opacidad del slider.
         const originalStyle = style(e.target.feature);
         geojsonLayer.resetStyle(e.target); // Resetea color y borde
         e.target.setStyle({ fillOpacity: originalStyle.fillOpacity }); // Restaura la opacidad correcta
