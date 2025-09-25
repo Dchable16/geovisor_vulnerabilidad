@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- SECCIÓN 4: INTERACTIVIDAD DEL MAPA ---
     function highlightFeature(e) {
         const layer = e.target;
-        layer.setStyle({ weight: 5, color: '#000', dashArray: '', fillOpacity: 0.9 });
+        layer.setStyle({ weight: 5, color: '#000', dashArray: '', fillOpacity: 0.7 });
         if (!L.Browser.ie) { layer.bringToFront(); }
     }
     
