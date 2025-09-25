@@ -10,24 +10,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }).addTo(map);
 
     let geojsonLayer;
+    // CAMBIO 1: La lógica de cómo llenamos este objeto cambiará.
+    // Ahora guardará { "NombreAcuifero": [capa1, capa2, ...], ... }
     let acuiferoData = {};
 
     // 3. Función para obtener el color
     function getColor(vulnerabilidad) {
-        // Se convierte el valor a número para una comparación segura
         const value = parseInt(vulnerabilidad, 10);
         return value === 5 ? '#D90404' :
                value === 4 ? '#F25C05' :
                value === 3 ? '#F2B705' :
                value === 2 ? '#99C140' :
                value === 1 ? '#2DC937' :
-                             '#CCCCCC'; // Gris por defecto
+                             '#CCCCCC';
     }
 
-    // 4. Estilo para los polígonos (CORREGIDO)
+    // 4. Estilo para los polígonos
     function style(feature) {
         return {
-            // CORRECCIÓN #1: Usar 'VULNERABIL' en mayúsculas
             fillColor: getColor(feature.properties.VULNERABIL),
             weight: 1.5,
             opacity: 1,
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
     
-    // 5. Funciones de interactividad
+    // 5. Funciones de interactividad (sin cambios aquí)
     function highlightFeature(e) {
         const layer = e.target;
         layer.setStyle({ weight: 4, color: '#333', fillOpacity: 0.9 });
@@ -51,18 +51,28 @@ document.addEventListener('DOMContentLoaded', function () {
         map.fitBounds(e.target.getBounds());
     }
 
-    // 6. Asignar popups y eventos a cada polígono (CORREGIDO)
+    // 6. Asignar popups y eventos a cada polígono
     function onEachFeature(feature, layer) {
         const props = feature.properties;
         if (props && props.NOM_ACUIF) {
             layer.bindPopup(
                 `<strong>Acuífero:</strong> ${props.NOM_ACUIF}<br>` +
-                // CORRECCIÓN #2: Usar 'CLAVE_ACUI' (sin la 'F' final)
                 `<strong>Clave:</strong> ${props.CLAVE_ACUI}<br>` +
-                // CORRECCIÓN #1: Usar 'VULNERABIL' en mayúsculas
                 `<strong>Vulnerabilidad:</strong> ${props.VULNERABIL}`
             );
-            acuiferoData[props.NOM_ACUIF] = layer;
+
+            // --- CAMBIO 2: Lógica para agrupar polígonos por nombre ---
+            const nombreAcuifero = props.NOM_ACUIF;
+
+            // Si es la primera vez que vemos este nombre de acuífero,
+            // creamos una nueva entrada en el objeto con un array que contiene la capa actual.
+            if (!acuiferoData[nombreAcuifero]) {
+                acuiferoData[nombreAcuifero] = [];
+            }
+            // Añadimos la capa actual al array correspondiente a su nombre de acuífero.
+            acuiferoData[nombreAcuifero].push(layer);
+            // ----------------------------------------------------------------
+
         }
         layer.on({
             mouseover: highlightFeature,
@@ -71,11 +81,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Cargar el GeoJSON
+    // 7. Cargar el GeoJSON (Asegúrate que el nombre del archivo sea exacto)
+    // Nota: Los nombres de archivo son sensibles a mayúsculas y minúsculas. 'Vulnerabilidad.geojson' es diferente de 'vulnerabilidad.geojson'.
     fetch('data/Vulnerabilidad.geojson')
         .then(response => {
             if (!response.ok) {
-                throw new Error(`Error de red. No se encontró 'data/Vulnerabilidad.geojson'.`);
+                throw new Error(`Error de red. No se encontró 'data/Vulnerabilidad.geojson'. Revisa el nombre y la ubicación del archivo.`);
             }
             return response.json();
         })
@@ -85,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 onEachFeature: onEachFeature
             }).addTo(map);
     
-            // Poblar el menú desplegable
+            // Poblar el menú desplegable (sin cambios aquí)
             const selector = document.getElementById('acuifero-select');
             const acuiferoNombres = Object.keys(acuiferoData).sort();
     
@@ -104,16 +115,27 @@ document.addEventListener('DOMContentLoaded', function () {
     // 8. Funcionalidad del selector
     document.getElementById('acuifero-select').addEventListener('change', function(e) {
         const nombreSeleccionado = e.target.value;
+
+        // --- CAMBIO 3: Lógica para hacer zoom al grupo de polígonos ---
         if (nombreSeleccionado && acuiferoData[nombreSeleccionado]) {
-            const layer = acuiferoData[nombreSeleccionado];
-            map.fitBounds(layer.getBounds());
-            layer.openPopup();
+            // Obtenemos el ARRAY de capas para el acuífero seleccionado.
+            const layers = acuiferoData[nombreSeleccionado];
+            
+            // Creamos un L.featureGroup temporal a partir de nuestro array de capas.
+            // Esta es una manera sencilla que Leaflet nos da para tratar múltiples capas como una sola.
+            const featureGroup = L.featureGroup(layers);
+
+            // Obtenemos los límites combinados de todas las capas en el grupo y hacemos zoom.
+            map.fitBounds(featureGroup.getBounds());
+            
         } else {
+            // Si el usuario deselecciona, volvemos a la vista general.
             map.setView([23.6345, -102.5528], 5);
         }
+        // -------------------------------------------------------------
     });
 
-    // 9. Leyenda
+    // 9. Leyenda (sin cambios)
     const legend = L.control({position: 'bottomright'});
     legend.onAdd = function (map) {
         const div = L.DomUtil.create('div', 'info legend');
