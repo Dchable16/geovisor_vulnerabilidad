@@ -22,6 +22,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     const esri_DarkGray = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
 	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
+	const openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    });
+    
+    // NUEVO: Mapa Base Digital de México (INEGI)
+    const inegi_MapaBase = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/7/{z}/{y}/{x}.png', {
+        attribution: 'Fuente: INEGI - Mapa Digital de México',
+        tms: true // Es importante especificar que es un servicio TMS si la coordenada 'y' está invertida
+    });
     
 	const baseMaps = {
         "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
