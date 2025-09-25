@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', function () {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     });
-    const inegi_MapaBase = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/7/{z}/{y}/{x}.png', {
+    const mapaInegi = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/mapabase_v6/{z}/{y}/{x}.png', {
         attribution: 'Fuente: INEGI - Mapa Digital de México',
-        tms: true // Es importante especificar que es un servicio TMS si la coordenada 'y' está invertida
+        tms: true // Esencial para que las coordenadas del mapa de INEGI se muestren correctamente
     });	
     const baseMaps = {
         "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
