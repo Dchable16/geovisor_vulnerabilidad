@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE (CON SELECCIÓN AMPLIADA DE ESRI) ---
 	const openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { 
 		maxZoom: 19, attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' });
-    
+	
 	const inegi_MapaBase = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/7/{z}/{y}/{x}.png', { 
 		attribution: 'Fuente: INEGI - Mapa Digital de México', tms: true });
     
@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const baseMaps = {
         "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
-        "Topográfico (ESRI)": esri_Topo, "Terreno (ESRI)": esri_Terrain, "Océanos (ESRI)": esri_Oceans, "Gris Oscuro (ESRI)": esri_DarkGray
+        "Topográfico (ESRI)": esri_Topo, "Terreno (ESRI)": esri_Terrain, "Océanos (ESRI)": esri_Oceans, "Gris Oscuro (ESRI)": esri_DarkGray,
+		"Open Street Map":openStreetMap, "INEGI":negi_MapaBase
     };
 
     // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
