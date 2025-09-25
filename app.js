@@ -57,6 +57,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- SECCIÓN 4: INTERACTIVIDAD DEL MAPA ---
     function highlightFeature(e) {
+        const layer = e.target;
+        layer.setStyle({ weight: 5, color: '#000', dashArray: '', fillOpacity: 0.9 });
+        if (!L.Browser.ie) { layer.bringToFront(); }
+    }
+    
+    function resetHighlight(e) {
         const originalStyle = style(e.target.feature);
         geojsonLayer.resetStyle(e.target); // Resetea color y borde
         e.target.setStyle({ fillOpacity: originalStyle.fillOpacity }); // Restaura la opacidad correcta
