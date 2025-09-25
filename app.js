@@ -49,8 +49,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function style(feature) {
         return {
-            fillColor: getColor(feature.properties.VULNERABIL), weight: 1.5,
-            opacity: 1, color: 'white', fillOpacity: 0.6
+            fillColor: getColor(feature.properties.VULNERABIL),
+            weight: 1.5,
+            opacity: 1,
+            color: 'white',
+            fillOpacity: currentOpacity // <-- Se conecta a la variable de estado global
         };
     }
 
@@ -62,11 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function resetHighlight(e) {
-        // En lugar de resetStyle, re-aplicamos el estilo original
-        // pero asegurándonos que use la opacidad del slider.
-        const originalStyle = style(e.target.feature);
-        geojsonLayer.resetStyle(e.target); // Resetea color y borde
-        e.target.setStyle({ fillOpacity: originalStyle.fillOpacity }); // Restaura la opacidad correcta
+        geojsonLayer.resetStyle(e.target);
     }
     
     function onEachFeature(feature, layer) {
