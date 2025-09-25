@@ -10,37 +10,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }).addTo(map);
 
     let geojsonLayer;
-    let acuiferoData = {}; // Objeto para almacenar las capas por nombre
+    let acuiferoData = {};
 
-    // 3. Función de color según vulnerabilidad
+    // 3. Función para obtener el color (Mejorada)
     function getColor(vulnerabilidad) {
-        return vulnerabilidad == 5 ? '#D90404' : // Rojo
-               vulnerabilidad == 4 ? '#F25C05' : // Naranja
-               vulnerabilidad == 3 ? '#F2B705' : // Amarillo
-               vulnerabilidad == 2 ? '#99C140' :
-               vulnerabilidad == 1 ? '#2DC937' : // Verde
-                                     '#FFFFFF'; 
+        // Se convierte el valor a número para una comparación segura
+        const value = parseInt(vulnerabilidad, 10);
+        return value === 5 ? '#D90404' :
+               value === 4 ? '#F25C05' :
+               value === 3 ? '#F2B705' :
+               value === 2 ? '#99C140' :
+               value === 1 ? '#2DC937' :
+                             '#CCCCCC'; // Gris por defecto si no hay valor
     }
 
-    // 4. Estilo de los polígonos
+    // 4. Estilo para los polígonos
     function style(feature) {
         return {
-            fillColor: getColor(feature.properties.Vulberabil),
+            fillColor: getColor(feature.properties.Vulnerabil),
             weight: 1.5,
             opacity: 1,
             color: 'white',
-            fillOpacity: 0.7
+            fillOpacity: 0.8
         };
     }
     
     // 5. Funciones de interactividad
     function highlightFeature(e) {
         const layer = e.target;
-        layer.setStyle({
-            weight: 4,
-            color: '#333',
-            fillOpacity: 0.8
-        });
+        layer.setStyle({ weight: 4, color: '#333', fillOpacity: 0.9 });
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
             layer.bringToFront();
         }
@@ -54,22 +52,18 @@ document.addEventListener('DOMContentLoaded', function () {
         map.fitBounds(e.target.getBounds());
     }
 
-    // 6. Asignar popups y eventos a cada polígono (ACTUALIZADO)
+    // 6. Asignar popups y eventos a cada polígono (CORREGIDO)
     function onEachFeature(feature, layer) {
         const props = feature.properties;
-        // Verifica que existan las nuevas propiedades antes de crear el popup
-        if (props && props.NOM_ACUIF && props.CLAVE_ACUIF) { 
-            // Popup actualizado para mostrar Nombre, Clave y Vulnerabilidad
+        if (props && props.NOM_ACUIF) {
             layer.bindPopup(
                 `<strong>Acuífero:</strong> ${props.NOM_ACUIF}<br>` +
-                `<strong>Clave:</strong> ${props.CLAVE_ACUIF}<br>` +
-                `<strong>Vulnerabilidad:</strong> ${props.Vulberabil}`
+                // CORRECCIÓN: Se cambió 'CLAVE_ACUIF' a 'CLAVE_ACUI'
+                `<strong>Clave:</strong> ${props.CLAVE_ACUI}<br>` +
+                `<strong>Vulnerabilidad:</strong> ${props.Vulnerabil}`
             );
-            
-            // Llenar el objeto de datos para el selector usando el nombre del acuífero
             acuiferoData[props.NOM_ACUIF] = layer;
         }
-
         layer.on({
             mouseover: highlightFeature,
             mouseout: resetHighlight,
@@ -77,39 +71,40 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Cargar el GeoJSON UNIFICADO
-    fetch('data/vulnerabilidad.geojson') // Esto ahora funcionará si completaste el Paso 1
+    // 7. Cargar el GeoJSON
+    fetch('data/Vulnerabilidad.geojson') // Asegúrate que el nombre coincide (V mayúscula)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`Error de red - Estatus: ${response.status}. Asegúrate de que 'data/vulnerabilidad.geojson' existe.`);
+                throw new Error(`Error de red. No se encontró 'data/Vulnerabilidad.geojson'.`);
             }
             return response.json();
         })
         .then(data => {
+            if (!data.features) {
+                throw new Error("El archivo GeoJSON no tiene la estructura correcta (falta 'features').");
+            }
             geojsonLayer = L.geoJson(data, {
                 style: style,
                 onEachFeature: onEachFeature
             }).addTo(map);
     
-            // Poblar el menú desplegable (ACTUALIZADO)
+            // Poblar el menú desplegable
             const selector = document.getElementById('acuifero-select');
-            // Obtener los nombres de los acuíferos y ordenarlos alfabéticamente
             const acuiferoNombres = Object.keys(acuiferoData).sort();
     
             acuiferoNombres.forEach(nombre => {
                 const option = document.createElement('option');
                 option.value = nombre;
-                option.textContent = nombre; // El texto visible será el nombre del acuífero
+                option.textContent = nombre;
                 selector.appendChild(option);
             });
-    
         })
         .catch(error => {
-            console.error('Error al cargar o procesar el GeoJSON:', error);
+            console.error('Error Crítico:', error);
             alert('No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.');
         });
         
-    // 8. Funcionalidad del selector de acuíferos (ACTUALIZADO)
+    // 8. Funcionalidad del selector
     document.getElementById('acuifero-select').addEventListener('change', function(e) {
         const nombreSeleccionado = e.target.value;
         if (nombreSeleccionado && acuiferoData[nombreSeleccionado]) {
@@ -117,12 +112,11 @@ document.addEventListener('DOMContentLoaded', function () {
             map.fitBounds(layer.getBounds());
             layer.openPopup();
         } else {
-            // Si se selecciona "Todos los acuíferos", se reinicia la vista
             map.setView([23.6345, -102.5528], 5);
         }
     });
 
-    // 9. Leyenda (sin cambios)
+    // 9. Leyenda
     const legend = L.control({position: 'bottomright'});
     legend.onAdd = function (map) {
         const div = L.DomUtil.create('div', 'info legend');
