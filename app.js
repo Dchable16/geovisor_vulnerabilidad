@@ -33,11 +33,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		"Open Street Maps": openStreetMap
     };
 
+	 const mutedStyle = { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 };
+
     // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
     const map = L.map('map', { center: [23.6345, -102.5528], zoom: 5, layers: [cartoDB_Positron] });
     L.control.layers(baseMaps).addTo(map);
     let geojsonLayer; let acuiferoData = {};
 	let currentOpacity = 0.6; 
+	let selectedVulnerability = 'all'; 
 
     // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
     function getColor(vulnerabilidad) {
@@ -65,7 +68,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function resetHighlight(e) {
-        geojsonLayer.resetStyle(e.target);
+        const layer = e.target;
+        const vulnerability = layer.feature.properties.VULNERABIL;
+        
+        // Comprobar si este polígono debe estar "iluminado" o "atenuado"
+        if (selectedVulnerability === 'all' || vulnerability == selectedVulnerability) {
+            geojsonLayer.resetStyle(layer); // Restaurar el estilo colorido normal
+        } else {
+            layer.setStyle(mutedStyle); // Restaurar al estilo atenuado
+        }
     }
     
     function onEachFeature(feature, layer) {
@@ -132,15 +143,40 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- SECCIÓN 7: LÓGICA DEL CONTROL DE OPACIDAD ---
     const opacitySlider = document.getElementById('opacity-slider');
     const opacityValueSpan = document.getElementById('opacity-value');
-    
+    opacitySlider.value = currentOpacity; // Sincroniza la posición del slider
+    opacityValueSpan.textContent = Math.round(currentOpacity * 100) + '%'; // Sincroniza el texto
+
     opacitySlider.addEventListener('input', function(e) {
-        const newOpacity = parseFloat(e.target.value);
-		currentOpacity = newOpacity; 
-        opacityValueSpan.textContent = Math.round(newOpacity * 100) + '%';
-        if (geojsonLayer) {
-            geojsonLayer.setStyle({
-                fillOpacity: newOpacity
-            });
-        }
+        currentOpacity = parseFloat(e.target.value); 
+        opacityValueSpan.textContent = Math.round(currentOpacity * 100) + '%';
+        
+        // MODIFICADO: En lugar de aplicar el estilo a todo, llamamos a applyFilter
+        // para que respete la selección actual.
+        applyFilter(); 
+    });
+
+	// --- SECCIÓN 8: LÓGICA DEL FILTRO DE VULNERABILIDAD ---
+
+    function applyFilter() {
+        if (!geojsonLayer) return; // Salir si la capa aún no se ha cargado
+
+        geojsonLayer.eachLayer(layer => {
+            const vulnerability = layer.feature.properties.VULNERABIL;
+            if (selectedVulnerability === 'all' || vulnerability == selectedVulnerability) {
+                // Si coincide o si mostramos todos, aplicar estilo normal (usando la opacidad actual)
+                layer.setStyle(style(layer.feature));
+            } else {
+                // Si no coincide, aplicar estilo atenuado
+                layer.setStyle(mutedStyle);
+            }
+        });
+    }
+
+    // Escuchar cambios en CUALQUIER botón de radio del grupo "vulnerability"
+    document.querySelectorAll('input[name="vulnerability"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            selectedVulnerability = e.target.value; // Actualizar variable de estado
+            applyFilter(); // Aplicar el filtro al mapa
+        });
     });
 });
