@@ -51,14 +51,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function style(feature) {
         return {
             fillColor: getColor(feature.properties.VULNERABIL), weight: 1.5,
-            opacity: 1, color: 'white', fillOpacity: 0.8
+            opacity: 1, color: 'white', fillOpacity: 0.6
         };
     }
 
     // --- SECCIÓN 4: INTERACTIVIDAD DEL MAPA ---
     function highlightFeature(e) {
         const layer = e.target;
-        layer.setStyle({ weight: 5, color: '#000', dashArray: '', fillOpacity: 0.7 });
+        layer.setStyle({ weight: 3, color: '#000', dashArray: '', fillOpacity: 0.8 });
         if (!L.Browser.ie) { layer.bringToFront(); }
     }
     
