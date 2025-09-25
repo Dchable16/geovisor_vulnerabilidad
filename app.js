@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	const mutedStyle = { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 };
 	const selectionHighlightStyle = {
-        color: '##005eff', // Un color cian/azul brillante
+        color: '#005EFF', // Un color cian/azul brillante
         weight: 2,        // Un borde más grueso
         opacity: 1        // Asegura que el borde sea opaco
     };
