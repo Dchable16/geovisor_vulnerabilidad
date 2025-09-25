@@ -17,13 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             styles: {
                 muted: { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 },
-                selection: { color: '#00FFFF', weight: 4, opacity: 1 },
+                selection: { color: '#00FFFF', weight: 2, opacity: 1 },
                 hover: { weight: 3, color: '#000', dashArray: '', fillOpacity: 0.95 }
             }
         },
 
         state: {
-            opacity: 0.8,
+            opacity: 0.6,
             filterValue: 'all',
             selectedAquiferName: null,
         },
