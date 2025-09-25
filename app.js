@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE (CON SELECCIÓN AMPLIADA DE ESRI) ---
+
 	const openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { 
 		maxZoom: 19, attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' });
 	
-	const inegi_MapaBase = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/7/{z}/{y}/{x}.png', { 
-		attribution: 'Fuente: INEGI - Mapa Digital de México', tms: true });
+	const mapaInegi = L.tileLayer('https://wms.ign.gob.ar/geoserver/ows?LAYERS=IGN%3Amapa_base&SRS=EPSG%3A3857&FORMAT=image%2Fpng&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}', {
+        attribution: '<a href="https://www.ign.gob.ar/AreaServicios/Argenmap/IntroduccionV2" target="_blank">Instituto Geográfico Nacional</a>'
+    });
     
     const cartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
