@@ -19,21 +19,27 @@
         <h1>Vulnerabilidad a la Intrusión Salina en Acuíferos de México</h1>
         
         <div class="selector-container">
-            <label for="acuifero-select">Selecciona un acuífero:</label>
+            <label for="acuifero-select">Selecciona un acuífero para hacer zoom:</label>
             <select id="acuifero-select">
-                <option value="">-- Todos los acuíferos --</option>
+                <option value="">-- Mostrar todos los acuíferos --</option>
             </select>
         </div>
 
         <div id="map"></div>
     </div>
 
-    <!-- Leaflet JS -->
+    <!-- 1. Leaflet JS (debe ir primero) -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
 
-    <!-- Código de la aplicación -->
+    <!-- 2. API de Google Maps (¡REEMPLAZA TU_API_KEY!) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA1xnmxVocDfNUQqaomV7QEmdcIR6pPd58"></script>
+    
+    <!-- 3. Plugin de Leaflet para Google Maps -->
+    <script src="https://unpkg.com/leaflet.gridlayer.googlemutant@latest/dist/Leaflet.GoogleMutant.js"></script>
+    
+    <!-- 4. Código de tu aplicación (debe ir al final) -->
     <script src="app.js"></script>
 
 </body>
