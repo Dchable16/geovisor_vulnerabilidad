@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const baseMaps = {
         "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
         "Topográfico (ESRI)": esri_Topo, "Terreno (ESRI)": esri_Terrain, "Océanos (ESRI)": esri_Oceans, "Gris Oscuro (ESRI)": esri_DarkGray,
-		"Open Street Map":openStreetMap, "INEGI":negi_MapaBase
+		"Open Street Map":openStreetMap, "INEGI":inegi_MapaBase
     };
 
     // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
