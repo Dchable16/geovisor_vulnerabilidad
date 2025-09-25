@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE (CON ESRI) ---
+    // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE (CON SELECCIÓN AMPLIADA DE ESRI) ---
     
-    // Mapa neutral claro (bueno por defecto)
+    // Mapa neutral claro (el que usamos por defecto)
     const cartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
     });
@@ -14,56 +14,68 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Topográfico de Esri
     const esri_Topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, etc.'
     });
 
-    // Callejero de Esri
+    // Callejero Estándar de Esri
     const esri_Street = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, etc.'
+    });
+
+    // NUEVO: Terreno con sombras de Esri
+    const esri_Terrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, NOAA'
+    });
+
+    // NUEVO: Océanos de Esri (con batimetría)
+    const esri_Oceans = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+	    attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri'
     });
     
-    // Lienzo gris oscuro de Esri (ideal para resaltar datos)
+    // Lienzo gris oscuro de Esri
     const esri_DarkGray = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
 	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
     });
 
-    // Agrupamos los mapas base en un objeto para el control de capas
+    // Agrupamos todos los mapas base en un objeto para el control de capas
     const baseMaps = {
         "Neutral (defecto)": cartoDB_Positron,
+        "Estándar (ESRI)": esri_Street,
         "Satélite (ESRI)": esri_Imagery,
         "Topográfico (ESRI)": esri_Topo,
-        "Calles (ESRI)": esri_Street,
+        "Terreno (ESRI)": esri_Terrain,
+        "Océanos (ESRI)": esri_Oceans,
         "Gris Oscuro (ESRI)": esri_DarkGray
     };
 
 
     // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
     const map = L.map('map', {
-        center: [23.6345, -102.5528], // Centrado en México
+        center: [23.6345, -102.5528],
         zoom: 5,
         layers: [cartoDB_Positron] // La capa que se mostrará por defecto
     });
     
     L.control.layers(baseMaps).addTo(map);
 
-    // Variables globales para la lógica
+    // Variables globales
     let geojsonLayer;
     let acuiferoData = {};
 
 
-    // --- (El resto del código es idéntico al anterior) ---
+    // --- (El resto del código no necesita cambios y permanece idéntico) ---
 
 
     // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
     function getColor(vulnerabilidad) {
         const value = parseInt(vulnerabilidad, 10);
         switch (value) {
-            case 5: return '#D90404'; // Rojo
-            case 4: return '#F25C05'; // Naranja
-            case 3: return '#F2B705'; // Amarillo
+            case 5: return '#D90404';
+            case 4: return '#F25C05';
+            case 3: return '#F2B705';
             case 2: return '#99C140';
-            case 1: return '#2DC937'; // Verde
-            default: return '#CCCCCC';// Gris por defecto
+            case 1: return '#2DC937';
+            default: return '#CCCCCC';
         }
     }
     function style(feature) {
