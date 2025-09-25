@@ -29,9 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const inegi_MapaBase = L.tileLayer('https://gaiamapas.inegi.org.mx/mdm_m/mdm_v/tms/1.0.0/7/{z}/{y}/{x}.png', {
         attribution: 'Fuente: INEGI - Mapa Digital de México',
         tms: true // Es importante especificar que es un servicio TMS si la coordenada 'y' está invertida
-    });
-	
-	const baseMaps = {
+    });	
+    const baseMaps = {
         "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
         "Topográfico (ESRI)": esri_Topo, "Terreno (ESRI)": esri_Terrain, "Océanos (ESRI)": esri_Oceans, "Gris Oscuro (ESRI)": esri_DarkGray,
 		"Open Street Map":openStreetMap, "INEGI":inegi_MapaBase
@@ -147,4 +146,3 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
-
