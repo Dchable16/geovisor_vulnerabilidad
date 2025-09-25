@@ -1,20 +1,53 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Inicialización del mapa
-    const map = L.map('map').setView([23.6345, -102.5528], 5);
-
-    // 2. Mapa base
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    // --- 1. DEFINICIÓN DE MAPAS BASE ---
+    
+    // Mapa actual (nuestro mapa por defecto)
+    const cartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 19
-    }).addTo(map);
+    });
+
+    // Google Maps - Híbrido (requiere el plugin GoogleMutant)
+    const googleHybrid = L.gridLayer.googleMutant({
+        type: 'hybrid' // Puede ser 'roadmap', 'satellite', 'hybrid' o 'terrain'
+    });
+
+    // Google Maps - Carreteras (requiere el plugin GoogleMutant)
+    const googleRoadmap = L.gridLayer.googleMutant({
+        type: 'roadmap'
+    });
+
+    // Mapa Topográfico de ESRI (una excelente alternativa gratuita)
+    const esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+    });
+
+    // Objeto que agrupa los mapas base para el control
+    const baseMaps = {
+        "Mapa Neutral": cartoDB_Positron,
+        "Google Híbrido": googleHybrid,
+        "Google Carreteras": googleRoadmap,
+        "Topográfico (ESRI)": esri_WorldTopoMap
+    };
+
+
+    // --- 2. INICIALIZACIÓN DEL MAPA ---
+    const map = L.map('map', {
+        center: [23.6345, -102.5528],
+        zoom: 5,
+        layers: [cartoDB_Positron] // Añadimos la capa por defecto aquí
+    });
+    
+    // AÑADIMOS EL CONTROL DE CAPAS AL MAPA
+    L.control.layers(baseMaps).addTo(map);
 
     let geojsonLayer;
-    // CAMBIO 1: La lógica de cómo llenamos este objeto cambiará.
-    // Ahora guardará { "NombreAcuifero": [capa1, capa2, ...], ... }
-    let acuiferoData = {};
+    let acuiferoData = {}; // Guardará { "NombreAcuifero": [capa1, capa2, ...] }
 
-    // 3. Función para obtener el color
+
+    // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON (sin cambios) ---
+
     function getColor(vulnerabilidad) {
         const value = parseInt(vulnerabilidad, 10);
         return value === 5 ? '#D90404' :
@@ -25,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
                              '#CCCCCC';
     }
 
-    // 4. Estilo para los polígonos
     function style(feature) {
         return {
             fillColor: getColor(feature.properties.VULNERABIL),
@@ -36,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
     
-    // 5. Funciones de interactividad (sin cambios aquí)
     function highlightFeature(e) {
         const layer = e.target;
         layer.setStyle({ weight: 4, color: '#333', fillOpacity: 0.9 });
@@ -51,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function () {
         map.fitBounds(e.target.getBounds());
     }
 
-    // 6. Asignar popups y eventos a cada polígono
     function onEachFeature(feature, layer) {
         const props = feature.properties;
         if (props && props.NOM_ACUIF) {
@@ -61,18 +91,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 `<strong>Vulnerabilidad:</strong> ${props.VULNERABIL}`
             );
 
-            // --- CAMBIO 2: Lógica para agrupar polígonos por nombre ---
             const nombreAcuifero = props.NOM_ACUIF;
-
-            // Si es la primera vez que vemos este nombre de acuífero,
-            // creamos una nueva entrada en el objeto con un array que contiene la capa actual.
             if (!acuiferoData[nombreAcuifero]) {
                 acuiferoData[nombreAcuifero] = [];
             }
-            // Añadimos la capa actual al array correspondiente a su nombre de acuífero.
             acuiferoData[nombreAcuifero].push(layer);
-            // ----------------------------------------------------------------
-
         }
         layer.on({
             mouseover: highlightFeature,
@@ -81,13 +104,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 7. Cargar el GeoJSON (Asegúrate que el nombre del archivo sea exacto)
-    // Nota: Los nombres de archivo son sensibles a mayúsculas y minúsculas. 'Vulnerabilidad.geojson' es diferente de 'vulnerabilidad.geojson'.
     fetch('data/Vulnerabilidad.geojson')
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`Error de red. No se encontró 'data/Vulnerabilidad.geojson'. Revisa el nombre y la ubicación del archivo.`);
-            }
+            if (!response.ok) throw new Error(`Error de red. No se encontró 'data/Vulnerabilidad.geojson'.`);
             return response.json();
         })
         .then(data => {
@@ -96,10 +115,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 onEachFeature: onEachFeature
             }).addTo(map);
     
-            // Poblar el menú desplegable (sin cambios aquí)
             const selector = document.getElementById('acuifero-select');
             const acuiferoNombres = Object.keys(acuiferoData).sort();
-    
             acuiferoNombres.forEach(nombre => {
                 const option = document.createElement('option');
                 option.value = nombre;
@@ -112,30 +129,19 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.');
         });
         
-    // 8. Funcionalidad del selector
+    // Selector de acuíferos
     document.getElementById('acuifero-select').addEventListener('change', function(e) {
         const nombreSeleccionado = e.target.value;
-
-        // --- CAMBIO 3: Lógica para hacer zoom al grupo de polígonos ---
         if (nombreSeleccionado && acuiferoData[nombreSeleccionado]) {
-            // Obtenemos el ARRAY de capas para el acuífero seleccionado.
             const layers = acuiferoData[nombreSeleccionado];
-            
-            // Creamos un L.featureGroup temporal a partir de nuestro array de capas.
-            // Esta es una manera sencilla que Leaflet nos da para tratar múltiples capas como una sola.
             const featureGroup = L.featureGroup(layers);
-
-            // Obtenemos los límites combinados de todas las capas en el grupo y hacemos zoom.
             map.fitBounds(featureGroup.getBounds());
-            
         } else {
-            // Si el usuario deselecciona, volvemos a la vista general.
             map.setView([23.6345, -102.5528], 5);
         }
-        // -------------------------------------------------------------
     });
 
-    // 9. Leyenda (sin cambios)
+    // Leyenda
     const legend = L.control({position: 'bottomright'});
     legend.onAdd = function (map) {
         const div = L.DomUtil.create('div', 'info legend');
