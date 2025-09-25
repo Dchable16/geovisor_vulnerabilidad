@@ -1,217 +1,227 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
 
-    // --- SECCIÓN 1: DEFINICIÓN DE MAPAS BASE (CON SELECCIÓN AMPLIADA DE ESRI) ---
-    
-    const cartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    });
-    const esri_Street = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, etc.'
-    });
-    const esri_Imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
-    const esri_Topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, etc.'
-    });
-    const esri_Terrain = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, NOAA'
-    });
-    const esri_Oceans = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri'
-    });
-    const esri_DarkGray = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
-    });
-    const openStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    });
-    const baseMaps = {
-        "Neutral (defecto)": cartoDB_Positron, "Estándar (ESRI)": esri_Street, "Satélite (ESRI)": esri_Imagery,
-        "Topográfico (ESRI)": esri_Topo, "Terreno (ESRI)": esri_Terrain, "Océanos (ESRI)": esri_Oceans, "Gris Oscuro (ESRI)": esri_DarkGray,
-		"Open Street Maps": openStreetMap
-    };
+    const GeovisorApp = {
 
-	const mutedStyle = { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 };
-	const selectionHighlightStyle = {
-        color: '#09BDE6', // Un color cian/azul brillante
-        weight: 2,        // Un borde más grueso
-        opacity: 1        // Asegura que el borde sea opaco
-    };
+        // --- 1. CONFIGURACIÓN Y ESTADO ---
 
-    // --- SECCIÓN 2: INICIALIZACIÓN DEL MAPA ---
-    const map = L.map('map', { center: [23.6345, -102.5528], zoom: 5, layers: [cartoDB_Positron] });
-    L.control.layers(baseMaps).addTo(map);
-    let geojsonLayer; let acuiferoData = {};
-	let currentOpacity = 0.6; 
-	let selectedVulnerability = 'all';
-	let currentlySelectedLayers = null;
-
-    // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
-    function getColor(vulnerabilidad) {
-        const value = parseInt(vulnerabilidad, 10);
-        switch (value) {
-            case 5: return '#D90404'; case 4: return '#F25C05'; case 3: return '#F2B705';
-            case 2: return '#99C140'; case 1: return '#2DC937'; default: return '#CCCCCC';
-        }
-    }
-    function style(feature) {
-        return {
-            fillColor: getColor(feature.properties.VULNERABIL),
-            weight: 1.5,
-            opacity: 1,
-            color: 'white',
-            fillOpacity: currentOpacity // <-- Se conecta a la variable de estado global
-        };
-    }
-
-    // --- SECCIÓN 4: INTERACTIVIDAD DEL MAPA ---
-    function highlightFeature(e) {
-        const layer = e.target;
-        layer.setStyle({ weight: 2.5, color: '#000', dashArray: '', fillOpacity: 0.7 });
-        if (!L.Browser.ie) { layer.bringToFront(); }
-    }
-    
-    function resetHighlight(e) {
-        const layer = e.target;
-        const vulnerability = layer.feature.properties.VULNERABIL;
-
-        // Si esta capa es parte de la selección activa del dropdown, restaurar su contorno azul.
-        if (currentlySelectedLayers && currentlySelectedLayers.includes(layer)) {
-            layer.setStyle(selectionHighlightStyle);
-            return; // No hacer nada más
-        }
-        
-        // Si no, aplicar la lógica normal del filtro
-        if (selectedVulnerability === 'all' || vulnerability == selectedVulnerability) {
-            geojsonLayer.resetStyle(layer);
-        } else {
-            layer.setStyle(mutedStyle);
-        }
-    }
-    
-    function onEachFeature(feature, layer) {
-        const props = feature.properties;
-        if (props && props.NOM_ACUIF && props.VULNERABIL) {
-            layer.bindPopup(
-                `<strong>Acuífero:</strong> ${props.NOM_ACUIF}<br>` +
-                `<strong>Clave:</strong> ${props.CLAVE_ACUI}<br>` +
-                `<strong>Vulnerabilidad:</strong> ${props.VULNERABIL}`
-            );
-            const nombreAcuifero = props.NOM_ACUIF;
-            if (!acuiferoData[nombreAcuifero]) { acuiferoData[nombreAcuifero] = []; }
-            acuiferoData[nombreAcuifero].push(layer);
-        }
-        layer.on({ mouseover: highlightFeature, mouseout: resetHighlight });
-    }
-
-    // --- SECCIÓN 5: CARGA DE DATOS Y LÓGICA DEL SELECTOR ---
-    fetch('data/Vulnerabilidad.geojson')
-        .then(response => {
-            if (!response.ok) { throw new Error(`Error de red - Estatus ${response.status}.`); }
-            return response.json();
-        })
-        .then(data => {
-            geojsonLayer = L.geoJson(data, { style: style, onEachFeature: onEachFeature }).addTo(map);
-            const selector = document.getElementById('acuifero-select');
-            const acuiferoNombres = Object.keys(acuiferoData).sort();
-            acuiferoNombres.forEach(nombre => {
-                const option = document.createElement('option');
-                option.value = nombre; option.textContent = nombre; selector.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error Crítico:', error);
-            alert('No se pudo cargar la capa de datos. Revisa la consola (F12).');
-        });
-        
-    document.getElementById('acuifero-select').addEventListener('change', function(e) {
-        const nombreSeleccionado = e.target.value;
-
-        // Paso 1: Limpiar cualquier resaltado azul anterior
-        if (currentlySelectedLayers) {
-            currentlySelectedLayers.forEach(layer => {
-                geojsonLayer.resetStyle(layer); // Esto devuelve el polígono a su estilo normal (colorido o atenuado)
-            });
-            currentlySelectedLayers = null;
-        }
-
-        // Paso 2: Si se seleccionó un acuífero válido, hacer zoom y aplicar el nuevo resaltado
-        if (nombreSeleccionado && acuiferoData[nombreSeleccionado]) {
-            const layersToHighlight = acuiferoData[nombreSeleccionado];
-            
-            // Hacer zoom
-            const featureGroup = L.featureGroup(layersToHighlight);
-            map.fitBounds(featureGroup.getBounds().pad(0.1));
-
-            // Aplicar el estilo de contorno azul y guardarlos
-            layersToHighlight.forEach(layer => {
-                layer.setStyle(selectionHighlightStyle);
-                layer.bringToFront();
-            });
-            currentlySelectedLayers = layersToHighlight;
-
-        } else {
-            // Si se seleccionó "-- Mostrar todos...", volver a la vista general
-            map.setView([23.6345, -102.5528], 5);
-        }
-    });
-
-    // --- SECCIÓN 6: LEYENDA ---
-    const legend = L.control({position: 'bottomright'});
-    legend.onAdd = function (map) {
-        const div = L.DomUtil.create('div', 'info legend');
-        const grades = [1, 2, 3, 4, 5];
-        const labels = ['Muy Baja', 'Baja', 'Media', 'Alta', 'Muy Alta'];
-        div.innerHTML = '<h4>Vulnerabilidad</h4>';
-        for (let i = 0; i < grades.length; i++) {
-            div.innerHTML += 
-                `<i style="background:${getColor(grades[i])}"></i> ${labels[i]} (Nivel ${grades[i]})<br>`;
-        }
-        return div;
-    };
-    legend.addTo(map);
-
-    // --- SECCIÓN 7: LÓGICA DEL CONTROL DE OPACIDAD ---
-    const opacitySlider = document.getElementById('opacity-slider');
-    const opacityValueSpan = document.getElementById('opacity-value');
-    opacitySlider.value = currentOpacity; // Sincroniza la posición del slider
-    opacityValueSpan.textContent = Math.round(currentOpacity * 100) + '%'; // Sincroniza el texto
-
-    opacitySlider.addEventListener('input', function(e) {
-        currentOpacity = parseFloat(e.target.value); 
-        opacityValueSpan.textContent = Math.round(currentOpacity * 100) + '%';
-        
-        // MODIFICADO: En lugar de aplicar el estilo a todo, llamamos a applyFilter
-        // para que respete la selección actual.
-        applyFilter(); 
-    });
-
-	// --- SECCIÓN 8: LÓGICA DEL FILTRO DE VULNERABILIDAD ---
-
-    function applyFilter() {
-        if (!geojsonLayer) return;
-
-        geojsonLayer.eachLayer(layer => {
-            const vulnerability = layer.feature.properties.VULNERABIL;
-            // No modificar el estilo de las capas con contorno azul
-            if (currentlySelectedLayers && currentlySelectedLayers.includes(layer)) {
-                return; // Saltar y dejar el contorno azul intacto
+        CONFIG: {
+            mapId: 'map',
+            initialCoords: [23.6345, -102.5528],
+            initialZoom: 5,
+            tileLayers: {
+                "Neutral (defecto)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
+                "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
+                "Estándar (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
+                "Satélite (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
+                "Topográfico (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' })
+            },
+            styles: {
+                muted: { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 },
+                selection: { color: '#00FFFF', weight: 4, opacity: 1 },
+                hover: { weight: 3, color: '#000', dashArray: '', fillOpacity: 0.95 }
             }
-            if (selectedVulnerability === 'all' || vulnerability == selectedVulnerability) {
-                layer.setStyle(style(layer.feature)); // Aplicar estilo normal con la opacidad correcta
+        },
+
+        state: {
+            opacity: 0.8,
+            filterValue: 'all',
+            selectedAquiferName: null,
+        },
+
+        nodes: {}, // Referencias a elementos del DOM
+        leaflet: {}, // Referencias a objetos de Leaflet
+        data: { // Datos cargados y procesados
+            aquifers: {}
+        },
+
+        // --- 2. MÉTODO DE INICIALIZACIÓN ---
+
+        init() {
+            this.cacheDomNodes();
+            this.initMap();
+            this.setupEventListeners();
+            this.loadData();
+        },
+
+        // --- 3. MÉTODOS DE CONFIGURACIÓN INICIAL ---
+
+        cacheDomNodes() {
+            this.nodes.mapContainer = document.getElementById(this.CONFIG.mapId);
+            this.nodes.aquiferSelect = document.getElementById('acuifero-select');
+            this.nodes.opacitySlider = document.getElementById('opacity-slider');
+            this.nodes.opacityValueSpan = document.getElementById('opacity-value');
+            this.nodes.filterRadios = document.querySelectorAll('input[name="vulnerability"]');
+        },
+
+        initMap() {
+            const initialLayer = this.CONFIG.tileLayers["Neutral (defecto)"];
+            this.leaflet.map = L.map(this.CONFIG.mapId, {
+                center: this.CONFIG.initialCoords,
+                zoom: this.CONFIG.initialZoom,
+                layers: [initialLayer]
+            });
+            L.control.layers(this.CONFIG.tileLayers).addTo(this.leaflet.map);
+            this.initLegend();
+        },
+
+        setupEventListeners() {
+            this.nodes.aquiferSelect.addEventListener('change', e => this.handleAquiferSelect(e.target.value));
+            this.nodes.opacitySlider.addEventListener('input', e => this.handleOpacityChange(e.target.value));
+            this.nodes.filterRadios.forEach(radio => {
+                radio.addEventListener('change', e => this.handleFilterChange(e.target.value));
+            });
+        },
+
+        async loadData() {
+            try {
+                const response = await fetch('data/Vulnerabilidad.geojson');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const geojsonData = await response.json();
+                
+                this.leaflet.geojsonLayer = L.geoJson(geojsonData, {
+                    style: feature => this.getFeatureStyle(feature),
+                    onEachFeature: (feature, layer) => {
+                        this.processFeature(feature, layer);
+                    }
+                }).addTo(this.leaflet.map);
+                
+                this.populateAquiferSelect();
+                this.updateView();
+            } catch (error) {
+                console.error("Error crítico al cargar los datos:", error);
+                alert("No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.");
+            }
+        },
+
+        // --- 4. MANEJADORES DE ESTADO (Actualizan el estado y disparan el render) ---
+
+        handleAquiferSelect(aquiferName) {
+            this.state.selectedAquiferName = aquiferName || null;
+            if (this.state.selectedAquiferName) {
+                const layers = this.data.aquifers[this.state.selectedAquiferName];
+                this.leaflet.map.fitBounds(L.featureGroup(layers).getBounds().pad(0.1));
             } else {
-                layer.setStyle(mutedStyle);
+                this.leaflet.map.setView(this.CONFIG.initialCoords, this.CONFIG.initialZoom);
             }
-        });
-    }
+            this.render();
+        },
 
-    // Escuchar cambios en CUALQUIER botón de radio del grupo "vulnerability"
-    document.querySelectorAll('input[name="vulnerability"]').forEach(radio => {
-        radio.addEventListener('change', e => {
-            selectedVulnerability = e.target.value; // Actualizar variable de estado
-            applyFilter(); // Aplicar el filtro al mapa
-        });
-    });
+        handleOpacityChange(opacity) {
+            this.state.opacity = parseFloat(opacity);
+            this.render();
+        },
+
+        handleFilterChange(filterValue) {
+            this.state.filterValue = filterValue;
+            this.render();
+        },
+
+        // --- 5. LÓGICA DE RENDERIZADO Y ESTILOS ---
+
+        render() {
+            if (!this.leaflet.geojsonLayer) return;
+
+            this.leaflet.geojsonLayer.eachLayer(layer => {
+                layer.setStyle(this.getLayerStyle(layer));
+            });
+            
+            this.updateView();
+        },
+
+        updateView() {
+            // Actualiza elementos de la UI que dependen del estado
+            this.nodes.opacityValueSpan.textContent = `${Math.round(this.state.opacity * 100)}%`;
+            this.nodes.opacitySlider.value = this.state.opacity;
+        },
+
+        getLayerStyle(layer) {
+            const { VULNERABIL, NOM_ACUIF } = layer.feature.properties;
+            
+            const matchesFilter = (this.state.filterValue === 'all' || VULNERABIL == this.state.filterValue);
+            if (!matchesFilter) {
+                return this.CONFIG.styles.muted;
+            }
+
+            let finalStyle = this.getFeatureStyle(layer.feature);
+
+            const isSelected = (this.state.selectedAquiferName === NOM_ACUIF);
+            if (isSelected) {
+                finalStyle = { ...finalStyle, ...this.CONFIG.styles.selection };
+            }
+            
+            return finalStyle;
+        },
+
+        getFeatureStyle(feature) {
+            const { VULNERABIL } = feature.properties;
+            const color = this.getColor(VULNERABIL);
+            return {
+                fillColor: color,
+                weight: 1.5,
+                opacity: 1,
+                color: 'white',
+                fillOpacity: this.state.opacity
+            };
+        },
+        
+        getColor(v) { /* Función pura, no necesita `this` */
+            const value = parseInt(v);
+            switch (value) {
+                case 5: return '#D90404'; case 4: return '#F25C05';
+                case 3: return '#F2B705'; case 2: return '#99C140';
+                case 1: return '#2DC937'; default: return '#CCCCCC';
+            }
+        },
+
+        // --- 6. PROCESAMIENTO DE DATOS Y UTILIDADES ---
+
+        processFeature(feature, layer) {
+            const { NOM_ACUIF, CLAVE_ACUI, VULNERABIL } = feature.properties;
+            
+            // Poblar popup
+            layer.bindPopup(`<strong>Acuífero:</strong> ${NOM_ACUIF}<br><strong>Clave:</strong> ${CLAVE_ACUI}<br><strong>Vulnerabilidad:</strong> ${VULNERABIL}`);
+            
+            // Agrupar acuíferos por nombre
+            if (!this.data.aquifers[NOM_ACUIF]) {
+                this.data.aquifers[NOM_ACUIF] = [];
+            }
+            this.data.aquifers[NOM_ACUIF].push(layer);
+
+            // Añadir eventos de hover
+            layer.on({
+                mouseover: e => e.target.setStyle(this.CONFIG.styles.hover),
+                mouseout: e => this.render() // La forma más simple de restaurar es redibujar todo
+            });
+        },
+        
+        populateAquiferSelect() {
+            const sortedNames = Object.keys(this.data.aquifers).sort();
+            sortedNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                this.nodes.aquiferSelect.appendChild(option);
+            });
+        },
+        
+        initLegend() {
+            const legend = L.control({ position: 'bottomright' });
+            legend.onAdd = () => {
+                const div = L.DomUtil.create('div', 'info legend');
+                const grades = [1, 2, 3, 4, 5];
+                const labels = ['Muy Baja', 'Baja', 'Media', 'Alta', 'Muy Alta'];
+                let legendHtml = '<h4>Vulnerabilidad</h4>';
+                grades.forEach((grade, i) => {
+                    legendHtml += `<i style="background:${this.getColor(grade)}"></i> ${labels[i]} (Nivel ${grade})<br>`;
+                });
+                div.innerHTML = legendHtml;
+                return div;
+            };
+            legend.addTo(this.leaflet.map);
+        }
+    };
+
+    // Iniciar la aplicación
+    GeovisorApp.init();
+
 });
