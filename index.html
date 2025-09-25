@@ -25,6 +25,12 @@
             </select>
         </div>
 
+        <div class="opacity-container">
+            <label for="opacity-slider">Opacidad de la capa:</label>
+            <input id="opacity-slider" type="range" min="0" max="1" step="0.05" value="0.8">
+            <span id="opacity-value">80%</span>
+        </div>
+
         <div id="map"></div>
     </div>
 
@@ -33,7 +39,7 @@
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
 
-    <!-- 2. Código de tu aplicación (Ya no se necesitan scripts de Google) -->
+    <!-- 2. Código de tu aplicación -->
     <script src="app.js"></script>
 
 </body>
