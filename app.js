@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const map = L.map('map', { center: [23.6345, -102.5528], zoom: 5, layers: [cartoDB_Positron] });
     L.control.layers(baseMaps).addTo(map);
     let geojsonLayer; let acuiferoData = {};
-	let currentOpacity = 0.8; 
+	let currentOpacity = 0.7; 
 
     // --- SECCIÓN 3: LÓGICA DE DATOS GEOJSON Y ESTILOS ---
     function getColor(vulnerabilidad) {
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- SECCIÓN 4: INTERACTIVIDAD DEL MAPA ---
     function highlightFeature(e) {
         const layer = e.target;
-        layer.setStyle({ weight: 1, color: '#000', dashArray: '', fillOpacity: 0.9 });
+        layer.setStyle({ weight: 2.5, color: '#000', dashArray: '', fillOpacity: 0.8 });
         if (!L.Browser.ie) { layer.bringToFront(); }
     }
     
