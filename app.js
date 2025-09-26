@@ -1,12 +1,27 @@
+/**
+ * @file app.js
+ * @description Lógica principal para el Geovisor de Vulnerabilidad.
+ * Este script sigue una arquitectura encapsulada en un objeto `GeovisorApp`
+ * para gestionar el estado, las interacciones y la renderización del mapa.
+ */
+
+'use strict';
+
 document.addEventListener('DOMContentLoaded', () => {
 
+    /**
+     * @class GeovisorApp
+     * Objeto principal que encapsula toda la funcionalidad del geovisor.
+     */
     const GeovisorApp = {
 
-// --- 1. CONFIGURACIÓN Y ESTADO (DEFINICIONES COMPLETAS RESTAURADAS) ---
+        // --- 1. CONFIGURACIÓN Y ESTADO INICIAL ---
+
         CONFIG: {
             mapId: 'map',
             initialCoords: [23.6345, -102.5528],
             initialZoom: 5,
+            dataUrl: 'data/Vulnerabilidad.geojson',
             tileLayers: {
                 "Neutral (defecto)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
                 "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
@@ -15,42 +30,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 "Topográfico (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' })
             },
             styles: {
+                base: { weight: 1.5, opacity: 1, color: 'white' },
                 muted: { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 },
                 selection: { color: '#00FFFF', weight: 4, opacity: 1 },
                 hover: { weight: 3, color: '#000', dashArray: '', fillOpacity: 0.95 }
             }
         },
+
         state: {
             opacity: 0.8,
             filterValue: 'all',
             selectedAquiferName: null,
+            isPanelCollapsed: false,
         },
+
         nodes: {}, 
         leaflet: {},
         data: { aquifers: {} },
 
-        // --- 2. MÉTODO DE INICIALIZACIÓN ---
+        // --- 2. PUNTO DE ENTRADA DE LA APLICACIÓN ---
+
         init() {
             this.initMap();
             this.setupEventListeners();
             this.loadData();
         },
 
-        // --- 3. MÉTODOS DE CONFIGURACIÓN INICIAL ---
+        // --- 3. MÉTODOS DE INICIALIZACIÓN ---
+
         initMap() {
-            const initialLayer = this.CONFIG.tileLayers["Neutral (defecto)"];
-            this.leaflet.map = L.map(this.CONFIG.mapId, { center: this.CONFIG.initialCoords, zoom: this.CONFIG.initialZoom, layers: [initialLayer] });
+            this.leaflet.map = L.map(this.CONFIG.mapId, {
+                center: this.CONFIG.initialCoords,
+                zoom: this.CONFIG.initialZoom,
+                layers: [this.CONFIG.tileLayers["Neutral (defecto)"]]
+            });
             L.control.layers(this.CONFIG.tileLayers).addTo(this.leaflet.map);
+            this.initUiControlsPanel();
+            this.initToggleControlButton(); 
             this.initLegend();
             this.initLogoControl();
-            this.initUiControls(); 
         },
-        
-        initUiControls() {
+
+        initUiControlsPanel() {
             const UiControl = L.Control.extend({
                 onAdd: (map) => {
                     const container = L.DomUtil.create('div', 'leaflet-custom-controls');
+                    this.nodes.uiControlContainer = container;
                     container.innerHTML = `
+                        <h1>Vulnerabilidad a la Intrusión Salina</h1>
                         <div class="control-section">
                             <label for="acuifero-select">Selecciona un acuífero:</label>
                             <select id="acuifero-select"><option value="">-- Mostrar todos --</option></select>
@@ -71,112 +98,104 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     `;
+                    
                     this.nodes.aquiferSelect = container.querySelector('#acuifero-select');
                     this.nodes.opacitySlider = container.querySelector('#opacity-slider');
                     this.nodes.opacityValueSpan = container.querySelector('#opacity-value');
                     this.nodes.filterRadios = container.querySelectorAll('input[name="vulnerability"]');
+                    
+                    if (this.state.isPanelCollapsed) container.classList.add('collapsed');
+
                     L.DomEvent.disableClickPropagation(container);
                     return container;
                 }
             });
-            new UiControl({ position: 'topright' }).addTo(this.leaflet.map);
+            new UiControl({ position: 'topleft' }).addTo(this.leaflet.map);
         },
 
+        initToggleControlButton() {
+            const ToggleControl = L.Control.extend({
+                onAdd: (map) => {
+                    const button = L.DomUtil.create('div', 'leaflet-custom-toggle-button');
+                    button.innerHTML = '☰'; // Ícono de menú (hamburguesa)
+                    button.title = "Mostrar/Ocultar controles";
+                    L.DomEvent.on(button, 'click', this.togglePanel, this);
+                    L.DomEvent.disableClickPropagation(button);
+                    return button;
+                }
+            });
+            new ToggleControl({ position: 'topleft' }).addTo(this.leaflet.map);
+        },
+        
         setupEventListeners() {
             this.nodes.aquiferSelect.addEventListener('change', e => this.handleAquiferSelect(e.target.value));
             this.nodes.opacitySlider.addEventListener('input', e => this.handleOpacityChange(e.target.value));
-            this.nodes.filterRadios.forEach(radio => {
-                radio.addEventListener('change', e => this.handleFilterChange(e.target.value));
-            });
+            this.nodes.filterRadios.forEach(radio => radio.addEventListener('change', e => this.handleFilterChange(e.target.value)));
         },
-        
+
         async loadData() {
             try {
-                const response = await fetch('data/Vulnerabilidad.geojson');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const response = await fetch(this.CONFIG.dataUrl);
+                if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
                 const geojsonData = await response.json();
-                this.leaflet.geojsonLayer = L.geoJson(geojsonData, { style: feature => this.getFeatureStyle(feature), onEachFeature: (feature, layer) => { this.processFeature(feature, layer); } }).addTo(this.leaflet.map);
+                
+                this.leaflet.geojsonLayer = L.geoJson(geojsonData, {
+                    style: feature => this.getFeatureStyle(feature),
+                    onEachFeature: (feature, layer) => this.processFeature(feature, layer)
+                }).addTo(this.leaflet.map);
+                
                 this.populateAquiferSelect();
                 this.updateView();
             } catch (error) {
-                console.error("Error crítico al cargar los datos:", error);
-                alert("No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.");
+                console.error("Error al cargar los datos geoespaciales:", error);
+                alert("No se pudo cargar la capa de datos. Verifique la consola (F12) para más detalles.");
             }
         },
 
-        // --- 4. MANEJADORES DE ESTADO (Actualizan el estado y disparan el render) ---
+        // --- 4. MANEJADORES DE ESTADO (Actualizan el estado y disparan la renderización) ---
 
-        handleAquiferSelect(aquiferName) {
-            this.state.selectedAquiferName = aquiferName || null;
-            if (this.state.selectedAquiferName) {
-                const layers = this.data.aquifers[this.state.selectedAquiferName];
-                this.leaflet.map.fitBounds(L.featureGroup(layers).getBounds().pad(0.1));
-            } else {
-                this.leaflet.map.setView(this.CONFIG.initialCoords, this.CONFIG.initialZoom);
-            }
-            this.render();
-        },
-
-        handleOpacityChange(opacity) {
-            this.state.opacity = parseFloat(opacity);
-            this.render();
-        },
-
-        handleFilterChange(filterValue) {
-            this.state.filterValue = filterValue;
-            this.render();
-        },
+        togglePanel() { this.state.isPanelCollapsed = !this.state.isPanelCollapsed; this.nodes.uiControlContainer.classList.toggle('collapsed', this.state.isPanelCollapsed); },
+        handleAquiferSelect(aquiferName) { this.state.selectedAquiferName = aquiferName || null; if (this.state.selectedAquiferName) { this.leaflet.map.fitBounds(L.featureGroup(this.data.aquifers[this.state.selectedAquiferName]).getBounds().pad(0.1)); } this.render(); },
+        handleOpacityChange(opacity) { this.state.opacity = parseFloat(opacity); this.render(); },
+        handleFilterChange(filterValue) { this.state.filterValue = filterValue; this.render(); },
 
         // --- 5. LÓGICA DE RENDERIZADO Y ESTILOS ---
 
         render() {
             if (!this.leaflet.geojsonLayer) return;
-
-            this.leaflet.geojsonLayer.eachLayer(layer => {
-                layer.setStyle(this.getLayerStyle(layer));
-            });
-            
+            this.leaflet.geojsonLayer.eachLayer(layer => layer.setStyle(this.getLayerStyle(layer)));
             this.updateView();
         },
 
         updateView() {
-            // Actualiza elementos de la UI que dependen del estado
             this.nodes.opacityValueSpan.textContent = `${Math.round(this.state.opacity * 100)}%`;
             this.nodes.opacitySlider.value = this.state.opacity;
         },
 
         getLayerStyle(layer) {
             const { VULNERABIL, NOM_ACUIF } = layer.feature.properties;
-            
             const matchesFilter = (this.state.filterValue === 'all' || VULNERABIL == this.state.filterValue);
-            if (!matchesFilter) {
-                return this.CONFIG.styles.muted;
-            }
+            
+            if (!matchesFilter) return this.CONFIG.styles.muted;
 
             let finalStyle = this.getFeatureStyle(layer.feature);
-
             const isSelected = (this.state.selectedAquiferName === NOM_ACUIF);
-            if (isSelected) {
-                finalStyle = { ...finalStyle, ...this.CONFIG.styles.selection };
-            }
+            
+            if (isSelected) finalStyle = { ...finalStyle, ...this.CONFIG.styles.selection };
             
             return finalStyle;
         },
 
         getFeatureStyle(feature) {
-            const { VULNERABIL } = feature.properties;
-            const color = this.getColor(VULNERABIL);
             return {
-                fillColor: color,
-                weight: 1.5,
-                opacity: 1,
-                color: 'white',
+                ...this.CONFIG.styles.base,
+                fillColor: this.getColor(feature.properties.VULNERABIL),
                 fillOpacity: this.state.opacity
             };
         },
         
-        getColor(v) { /* Función pura, no necesita `this` */
-            const value = parseInt(v);
+        getColor(v) {
+            const value = parseInt(v, 10);
             switch (value) {
                 case 5: return '#D90404'; case 4: return '#F25C05';
                 case 3: return '#F2B705'; case 2: return '#99C140';
@@ -188,36 +207,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         processFeature(feature, layer) {
             const { NOM_ACUIF, CLAVE_ACUI, VULNERABIL } = feature.properties;
-            
-            // Poblar popup
             layer.bindPopup(`<strong>Acuífero:</strong> ${NOM_ACUIF}<br><strong>Clave:</strong> ${CLAVE_ACUI}<br><strong>Vulnerabilidad:</strong> ${VULNERABIL}`);
             
-            // Agrupar acuíferos por nombre
-            if (!this.data.aquifers[NOM_ACUIF]) {
-                this.data.aquifers[NOM_ACUIF] = [];
-            }
+            if (!this.data.aquifers[NOM_ACUIF]) this.data.aquifers[NOM_ACUIF] = [];
             this.data.aquifers[NOM_ACUIF].push(layer);
 
             layer.on({
                 mouseover: e => {
                     const highlightedLayer = e.target;
                     highlightedLayer.setStyle(this.CONFIG.styles.hover);
-                    
-                    // Esta línea trae la capa al frente, por encima de sus vecinas.
-                    highlightedLayer.bringToFront(); 
+                    highlightedLayer.bringToFront();
                 },
-                mouseout: e => this.render() // Al redibujar, el orden se restablece automáticamente.
+                mouseout: e => this.render()
             });
         },
         
         populateAquiferSelect() {
             const sortedNames = Object.keys(this.data.aquifers).sort();
-            sortedNames.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                this.nodes.aquiferSelect.appendChild(option);
-            });
+            this.nodes.aquiferSelect.innerHTML += sortedNames.map(name => `<option value="${name}">${name}</option>`).join('');
         },
         
         initLegend() {
@@ -226,37 +233,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const div = L.DomUtil.create('div', 'info legend');
                 const grades = [1, 2, 3, 4, 5];
                 const labels = ['Muy Baja', 'Baja', 'Media', 'Alta', 'Muy Alta'];
-                let legendHtml = '<h4>Vulnerabilidad</h4>';
+                let content = '<h4>Vulnerabilidad</h4>';
                 grades.forEach((grade, i) => {
-                    legendHtml += `<i style="background:${this.getColor(grade)}"></i> ${labels[i]} (Nivel ${grade})<br>`;
+                    content += `<i style="background:${this.getColor(grade)}"></i> ${labels[i]} (Nivel ${grade})<br>`;
                 });
-                div.innerHTML = legendHtml;
+                div.innerHTML = content;
                 return div;
             };
             legend.addTo(this.leaflet.map);
         },
         
         initLogoControl() {
-            // 1. Crear una nueva clase de control en la posición 'bottomleft'
             const LogoControl = L.Control.extend({
-                onAdd: function(map) {
-                    // 2. Crear el elemento HTML (un div que contendrá la imagen)
+                onAdd: map => {
                     const container = L.DomUtil.create('div', 'leaflet-logo-control');
-                    container.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSIG.png" alt="Logo SSIG">`;
-                    
-                    // 3. Importante: Deshabilitar la propagación de eventos del mapa al logo
+                    container.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSSIG.png" alt="Logo SSSIG">`;
                     L.DomEvent.disableClickPropagation(container);
-                    
                     return container;
                 }
             });
-
-            // 4. Instanciar y añadir el nuevo control al mapa
             new LogoControl({ position: 'bottomleft' }).addTo(this.leaflet.map);
         }
     };
-
-    // Iniciar la aplicación
+    
+    // Inicia la aplicación.
     GeovisorApp.init();
-
 });
