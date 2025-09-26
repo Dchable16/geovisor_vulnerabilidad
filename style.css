@@ -149,3 +149,22 @@ body {
     border-color: #2b82d4;
     color: white;
 }
+
+#floating-logo {
+    position: fixed; /* Lo saca del flujo normal y lo posiciona relativo a la ventana */
+    bottom: 15px;    /* A 15px del borde inferior */
+    right: 15px;     /* A 15px del borde derecho */
+    z-index: 1001;   /* Un valor alto para asegurar que esté sobre el mapa y sus controles */
+    opacity: 0.9;    /* Ligera transparencia para que no sea tan intrusivo */
+    transition: opacity 0.2s ease-in-out;
+}
+
+#floating-logo:hover {
+    opacity: 1; /* Totalmente opaco al pasar el ratón */
+}
+
+#floating-logo img {
+    height: 50px; /* Un tamaño un poco más discreto que los del header */
+    width: auto;
+    display: block; /* Evita espacios extra debajo de la imagen */
+}
