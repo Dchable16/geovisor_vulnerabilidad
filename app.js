@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 4. MANEJADORES DE ESTADO ---
 
         setPanelCollapsed(isCollapsed) { this.state.isPanelCollapsed = isCollapsed; 
-                                        this.nodes.uiControlContainer.classList.toggle('collapsed', isCollapsed);
+                                        this.nodes.uiControlContainer.classList.toggle('collapsed', isCollapsed);},
         handleAquiferSelect(aquiferName) { this.state.selectedAquiferName = aquiferName || null; if (this.state.selectedAquiferName) { this.leaflet.map.fitBounds(L.featureGroup(this.data.aquifers[this.state.selectedAquiferName]).getBounds().pad(0.1)); } this.render(); },
         handleOpacityChange(opacity) { this.state.opacity = parseFloat(opacity); this.render(); },
         handleFilterChange(filterValue) { this.state.filterValue = filterValue; this.render(); },
