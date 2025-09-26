@@ -213,6 +213,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         },
 
+        initLegend() {
+            const legend = L.control({ position: 'bottomright' });
+            legend.onAdd = () => {
+                const div = L.DomUtil.create('div', 'info legend');
+                const grades = [1, 2, 3, 4, 5];
+                const labels = ['Muy Baja', 'Baja', 'Media', 'Alta', 'Muy Alta'];
+                let legendHtml = '<h4>Vulnerabilidad</h4>';
+                grades.forEach((grade, i) => {
+                    legendHtml += `<i style="background:${this.getColor(grade)}"></i> ${labels[i]} (Nivel ${grade})<br>`;
+                });
+                div.innerHTML = legendHtml;
+                return div;
+            };
+            legend.addTo(this.leaflet.map);
+        }
+
     };
 
     // Iniciar la aplicación
