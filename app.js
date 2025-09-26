@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             L.control.layers(this.CONFIG.tileLayers).addTo(this.leaflet.map);
             this.initLegend();
+            this.initLogoControl(); 
         },
 
         setupEventListeners() {
