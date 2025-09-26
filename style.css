@@ -1,18 +1,26 @@
 .main-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Empuja los elementos hijos a los extremos */
     align-items: center;
     padding: 15px 2.5%;
     background-color: #ffffff;
     border-bottom: 1px solid #e0e0e0;
 }
-.logo-group {
+
+.logo-container {
     display: flex;
     align-items: center;
-    gap: 30px; /* Espacio moderno y limpio entre logos */
 }
 
-.logo-group img {
+.logo-left {
+    justify-content: flex-start;
+}
+
+.logo-right {
+    justify-content: flex-end;
+}
+
+.logo-container img {
     height: 60px; /* Altura uniforme para los logos del header */
     width: auto;
     object-fit: contain;
@@ -29,7 +37,6 @@ body {
     padding: 0;
     background-color: #f4f4f4;
 }
-
 .container {
     width: 95%;
     max-width: 1200px;
