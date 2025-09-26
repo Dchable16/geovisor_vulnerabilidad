@@ -52,27 +52,27 @@ body {
 
 /* --- 3. CONTROLES PERSONALIZADOS DE LEAFLET --- */
 
-/* Contenedor del Panel de Controles Principal */
+/* Contenedor del Panel de Controles Principal (MODIFICADO para animación lateral) */
 .leaflet-custom-controls {
     background: var(--panel-bg);
     padding: 15px;
     border-radius: var(--border-radius);
     box-shadow: var(--panel-shadow);
-    max-width: 320px;
-    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
-    max-height: 600px;
-    overflow: hidden;
+    width: 320px; /* Ancho fijo para la animación */
+    box-sizing: border-box;
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+    transform: translateX(0); /* Estado visible */
     opacity: 1;
 }
 
 .leaflet-custom-controls.collapsed {
-    max-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    transform: translateX(-100%); /* Desplazar a la izquierda */
     opacity: 0;
+    padding: 15px 0; /* Evita que el contenido se vea mientras se encoge */
 }
 
-/* Botón para desplegar el panel */
+
+/* Botón para desplegar el panel (MODIFICADO para posicionamiento) */
 .leaflet-custom-toggle-button {
     background-color: white;
     width: 34px;
@@ -84,12 +84,17 @@ body {
     font-size: 20px;
     border-radius: var(--border-radius);
     box-shadow: var(--panel-shadow);
-}
-.leaflet-custom-toggle-button:hover {
-    background-color: #f4f4f4;
+    /* Se posiciona junto al panel colapsado */
+    transition: transform 0.4s ease-in-out;
+    transform: translateX(0);
 }
 
-/* Leyenda */
+.leaflet-custom-toggle-button.panel-collapsed {
+    transform: translateX(calc(320px + 10px)); /* Mover el botón a la derecha del panel oculto */
+}
+
+
+/* Leyenda (Simbologia) (MODIFICADO: Estilo restaurado) */
 .info.legend {
     background: var(--panel-bg);
     padding: 10px 15px;
@@ -98,6 +103,8 @@ body {
     line-height: 1.8;
     color: #333;
 }
+.info.legend h4 { margin: 0 0 10px; font-size: 16px; text-align: center; }
+.info.legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border: 1px solid #666; }
 
 /* Logo SSSIG */
 .leaflet-control.leaflet-logo-control {
