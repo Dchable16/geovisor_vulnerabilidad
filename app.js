@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             initialCoords: [23.6345, -102.5528],
             initialZoom: 5,
             tileLayers: {
-                "Neutral (ESRI)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
+                "Neutral (defecto)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
                 "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
                 "Estándar (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
                 "Satélite (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             L.control.layers(this.CONFIG.tileLayers).addTo(this.leaflet.map);
             this.initLegend();
-            this.initLogoControl();
         },
 
         setupEventListeners() {
@@ -212,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.nodes.aquiferSelect.appendChild(option);
             });
         },
-
+        
         initLegend() {
             const legend = L.control({ position: 'bottomright' });
             legend.onAdd = () => {
@@ -228,7 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             legend.addTo(this.leaflet.map);
         }
-
     };
 
     // Iniciar la aplicación
