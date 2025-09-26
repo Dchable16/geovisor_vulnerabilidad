@@ -153,11 +153,28 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         // --- 4. MANEJADORES DE ESTADO (Actualizan el estado y disparan la renderización) ---
+        initToggleControlButton() {
+            const ToggleControl = L.Control.extend({
+                onAdd: (map) => {
+                    const button = L.DomUtil.create('div', 'leaflet-custom-toggle-button');
+                    this.nodes.toggleButton = button; // <-- AÑADE ESTA LÍNEA
+        
+                    button.innerHTML = '☰';
+                    button.title = "Mostrar/Ocultar controles";
+                    L.DomEvent.on(button, 'click', this.togglePanel, this);
+                    L.DomEvent.disableClickPropagation(button);
+                    return button;
+                }
+            });
+            new ToggleControl({ position: 'topleft' }).addTo(this.leaflet.map);
+        },
 
-        togglePanel() { this.state.isPanelCollapsed = !this.state.isPanelCollapsed; this.nodes.uiControlContainer.classList.toggle('collapsed', this.state.isPanelCollapsed); },
-        handleAquiferSelect(aquiferName) { this.state.selectedAquiferName = aquiferName || null; if (this.state.selectedAquiferName) { this.leaflet.map.fitBounds(L.featureGroup(this.data.aquifers[this.state.selectedAquiferName]).getBounds().pad(0.1)); } this.render(); },
-        handleOpacityChange(opacity) { this.state.opacity = parseFloat(opacity); this.render(); },
-        handleFilterChange(filterValue) { this.state.filterValue = filterValue; this.render(); },
+
+        togglePanel() {
+            this.state.isPanelCollapsed = !this.state.isPanelCollapsed;
+            this.nodes.uiControlContainer.classList.toggle('collapsed', this.state.isPanelCollapsed);
+            this.nodes.toggleButton.classList.toggle('panel-collapsed', !this.state.isPanelCollapsed); // <-- AÑADE ESTA LÍNEA
+        },
 
         // --- 5. LÓGICA DE RENDERIZADO Y ESTILOS ---
 
