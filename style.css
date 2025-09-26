@@ -1,3 +1,45 @@
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 2.5%; /* Alinear con los márgenes del contenedor principal */
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.main-header h1 {
+    flex-grow: 1; /* Permite que el título ocupe el espacio central */
+    text-align: center;
+    margin: 0 20px;
+    font-size: 1.5em; /* Ajusta el tamaño del título si es necesario */
+    color: #333;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    /* Los flex-basis aseguran que los contenedores no se encojan demasiado */
+    flex-basis: 200px; 
+}
+
+.logo-left {
+    justify-content: flex-start;
+}
+
+.logo-right {
+    justify-content: flex-end;
+}
+
+.logo-container img {
+    height: 60px; /* Altura uniforme para todos los logos */
+    width: auto;   /* Ancho automático para mantener la proporción */
+    object-fit: contain;
+}
+
+.logo-right img:not(:last-child) {
+    margin-right: 20px; /* Espacio entre los logos de la derecha */
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
