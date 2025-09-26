@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 onAdd: function(map) {
                     // 2. Crear el elemento HTML (un div que contendrá la imagen)
                     const container = L.DomUtil.create('div', 'leaflet-logo-control');
-                    container.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSSIG.png" alt="Logo SSSIG">`;
+                    container.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSIG.png" alt="Logo SSIG">`;
                     
                     // 3. Importante: Deshabilitar la propagación de eventos del mapa al logo
                     L.DomEvent.disableClickPropagation(container);
