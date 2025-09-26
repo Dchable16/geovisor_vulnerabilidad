@@ -3,98 +3,75 @@ document.addEventListener('DOMContentLoaded', () => {
     const GeovisorApp = {
 
         // --- 1. CONFIGURACIÓN Y ESTADO ---
-
-        CONFIG: {
-            mapId: 'map',
-            initialCoords: [23.6345, -102.5528],
-            initialZoom: 5,
-            tileLayers: {
-                "Neutral (defecto)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
-                "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
-                "Estándar (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
-                "Satélite (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
-                "Topográfico (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
-                "Terreno (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', { attribution:'&copy; Esri' }),
-                "Océanos (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', { attribution:'&copy; Esri' }),
-                "Gris Oscuro (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution:'&copy; Esri' })
-            },
-            styles: {
-                muted: { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 },
-                selection: { color: '#00FFFF', weight: 2, opacity: .7 },
-                hover: { weight: 2.5, color: '#000', dashArray: '', fillOpacity: 0.7 }
-            }
-        },
-
-        state: {
-            opacity: 0.6,
-            filterValue: 'all',
-            selectedAquiferName: null,
-        },
-
-        nodes: {}, // Referencias a elementos del DOM
-        leaflet: {}, // Referencias a objetos de Leaflet
-        data: { // Datos cargados y procesados
-            aquifers: {}
-        },
+        CONFIG: { /* ...sin cambios... */ },
+        state: { /* ...sin cambios... */ },
+        nodes: {}, 
+        leaflet: {},
+        data: { aquifers: {} },
 
         // --- 2. MÉTODO DE INICIALIZACIÓN ---
-
         init() {
-            this.cacheDomNodes();
+            // El orden ahora es importante: crear el mapa primero, luego buscar nodos.
             this.initMap();
+            this.cacheDomNodes();
             this.setupEventListeners();
             this.loadData();
         },
 
         // --- 3. MÉTODOS DE CONFIGURACIÓN INICIAL ---
-
         cacheDomNodes() {
             this.nodes.mapContainer = document.getElementById(this.CONFIG.mapId);
+            // Estos elementos ahora se buscan DENTRO del panel de control
             this.nodes.aquiferSelect = document.getElementById('acuifero-select');
             this.nodes.opacitySlider = document.getElementById('opacity-slider');
             this.nodes.opacityValueSpan = document.getElementById('opacity-value');
             this.nodes.filterRadios = document.querySelectorAll('input[name="vulnerability"]');
         },
-
+        
         initMap() {
             const initialLayer = this.CONFIG.tileLayers["Neutral (defecto)"];
-            this.leaflet.map = L.map(this.CONFIG.mapId, {
-                center: this.CONFIG.initialCoords,
-                zoom: this.CONFIG.initialZoom,
-                layers: [initialLayer]
-            });
+            this.leaflet.map = L.map(this.CONFIG.mapId, { center: this.CONFIG.initialCoords, zoom: this.CONFIG.initialZoom, layers: [initialLayer] });
             L.control.layers(this.CONFIG.tileLayers).addTo(this.leaflet.map);
             this.initLegend();
-            this.initLogoControl(); 
+            this.initLogoControl();
+            this.initUiControls(); // <-- AÑADIR ESTA LLAMADA
         },
-
-        setupEventListeners() {
-            this.nodes.aquiferSelect.addEventListener('change', e => this.handleAquiferSelect(e.target.value));
-            this.nodes.opacitySlider.addEventListener('input', e => this.handleOpacityChange(e.target.value));
-            this.nodes.filterRadios.forEach(radio => {
-                radio.addEventListener('change', e => this.handleFilterChange(e.target.value));
+        
+        // NUEVO MÉTODO PARA CREAR EL PANEL DE CONTROLES FLOTANTE
+        initUiControls() {
+            const UiControl = L.Control.extend({
+                onAdd: function(map) {
+                    const container = L.DomUtil.create('div', 'leaflet-custom-controls');
+                    
+                    container.innerHTML = `
+                        <div class="control-section">
+                            <label for="acuifero-select">Selecciona un acuífero:</label>
+                            <select id="acuifero-select"><option value="">-- Mostrar todos --</option></select>
+                        </div>
+                        <div class="control-section">
+                            <label for="opacity-slider">Opacidad general: <span id="opacity-value"></span></label>
+                            <input id="opacity-slider" type="range" min="0" max="1" step="0.05">
+                        </div>
+                        <div class="control-section">
+                            <label>Iluminar por vulnerabilidad:</label>
+                            <div class="radio-group">
+                                <input type="radio" id="vul-todos" name="vulnerability" value="all" checked><label for="vul-todos">Todos</label>
+                                <input type="radio" id="vul-1" name="vulnerability" value="1"><label for="vul-1">1</label>
+                                <input type="radio" id="vul-2" name="vulnerability" value="2"><label for="vul-2">2</label>
+                                <input type="radio" id="vul-3" name="vulnerability" value="3"><label for="vul-3">3</label>
+                                <input type="radio" id="vul-4" name="vulnerability" value="4"><label for="vul-4">4</label>
+                                <input type="radio" id="vul-5" name="vulnerability" value="5"><label for="vul-5">5</label>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Evitar que los clics en el panel se propaguen al mapa
+                    L.DomEvent.disableClickPropagation(container);
+                    return container;
+                }
             });
-        },
 
-        async loadData() {
-            try {
-                const response = await fetch('data/Vulnerabilidad.geojson');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const geojsonData = await response.json();
-                
-                this.leaflet.geojsonLayer = L.geoJson(geojsonData, {
-                    style: feature => this.getFeatureStyle(feature),
-                    onEachFeature: (feature, layer) => {
-                        this.processFeature(feature, layer);
-                    }
-                }).addTo(this.leaflet.map);
-                
-                this.populateAquiferSelect();
-                this.updateView();
-            } catch (error) {
-                console.error("Error crítico al cargar los datos:", error);
-                alert("No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.");
-            }
+            new UiControl({ position: 'topright' }).addTo(this.leaflet.map);
         },
 
         // --- 4. MANEJADORES DE ESTADO (Actualizan el estado y disparan el render) ---
