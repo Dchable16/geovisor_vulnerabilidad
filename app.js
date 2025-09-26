@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return div;
             };
             legend.addTo(this.leaflet.map);
-        }
+        },
         
         initLogoControl() {
             // 1. Crear una nueva clase de control en la posición 'bottomleft'
