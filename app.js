@@ -212,41 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.nodes.aquiferSelect.appendChild(option);
             });
         },
-        
-        initLegend() {
-            const legend = L.control({ position: 'bottomright' });
-            legend.onAdd = () => {
-                const div = L.DomUtil.create('div', 'info legend');
-                const grades = [1, 2, 3, 4, 5];
-                const labels = ['Muy Baja', 'Baja', 'Media', 'Alta', 'Muy Alta'];
-                let legendHtml = '<h4>Vulnerabilidad</h4>';
-                grades.forEach((grade, i) => {
-                    legendHtml += `<i style="background:${this.getColor(grade)}"></i> ${labels[i]} (Nivel ${grade})<br>`;
-                });
-                div.innerHTML = legendHtml;
-                return div;
-            };
-            legend.addTo(this.leaflet.map);
-        }
-        
-         initLogoControl() {
-            // 1. Crear una nueva clase de control en la posición 'bottomleft'
-            const LogoControl = L.Control.extend({
-                onAdd: function(map) {
-                    // 2. Crear el elemento HTML (un div que contendrá la imagen)
-                    const container = L.DomUtil.create('div', 'leaflet-logo-control');
-                    container.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSSIG.png" alt="Logo SSSIG">`;
-                    
-                    // 3. Importante: Deshabilitar la propagación de eventos del mapa al logo
-                    L.DomEvent.disableClickPropagation(container);
-                    
-                    return container;
-                }
-            });
 
-            // 4. Instanciar y añadir el nuevo control al mapa
-            new LogoControl({ position: 'bottomleft' }).addTo(this.leaflet.map);
-        }
     };
 
     // Iniciar la aplicación
