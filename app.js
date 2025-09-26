@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const LogoControl = L.Control.extend({
                 onAdd: map => {
                     const c = L.DomUtil.create('div', 'leaflet-logo-control');
-                    c.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSSIG.png" alt="Logo SSSIG">`;
+                    c.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSIG.png" alt="Logo SSIG">`;
                     L.DomEvent.disableClickPropagation(c);
                     return c;
                 }
