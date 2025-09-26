@@ -2,9 +2,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const GeovisorApp = {
 
-// --- 1. CONFIGURACIÓN Y ESTADO ---
-        CONFIG: { /* ...sin cambios... */ },
-        state: { /* ...sin cambios... */ },
+// --- 1. CONFIGURACIÓN Y ESTADO (DEFINICIONES COMPLETAS RESTAURADAS) ---
+        CONFIG: {
+            mapId: 'map',
+            initialCoords: [23.6345, -102.5528],
+            initialZoom: 5,
+            tileLayers: {
+                "Neutral (defecto)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
+                "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
+                "Estándar (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
+                "Satélite (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
+                "Topográfico (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' })
+            },
+            styles: {
+                muted: { fillColor: '#A9A9A9', weight: 1, color: '#A9A9A9', fillOpacity: 0.2 },
+                selection: { color: '#00FFFF', weight: 4, opacity: 1 },
+                hover: { weight: 3, color: '#000', dashArray: '', fillOpacity: 0.95 }
+            }
+        },
+        state: {
+            opacity: 0.8,
+            filterValue: 'all',
+            selectedAquiferName: null,
+        },
         nodes: {}, 
         leaflet: {},
         data: { aquifers: {} },
@@ -12,15 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 2. MÉTODO DE INICIALIZACIÓN ---
         init() {
             this.initMap();
-            // cacheDomNodes ya no es necesario aquí
             this.setupEventListeners();
             this.loadData();
         },
 
         // --- 3. MÉTODOS DE CONFIGURACIÓN INICIAL ---
-        
-        // ELIMINADO: cacheDomNodes() ya no es un método separado. Su lógica se ha movido a initUiControls().
-
         initMap() {
             const initialLayer = this.CONFIG.tileLayers["Neutral (defecto)"];
             this.leaflet.map = L.map(this.CONFIG.mapId, { center: this.CONFIG.initialCoords, zoom: this.CONFIG.initialZoom, layers: [initialLayer] });
@@ -30,13 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
             this.initUiControls(); 
         },
         
-        // MODIFICADO: Este método ahora también se encarga de cachear los nodos que crea.
         initUiControls() {
             const UiControl = L.Control.extend({
-                // Usamos una función de flecha para mantener el contexto de 'this' apuntando a GeovisorApp
                 onAdd: (map) => {
                     const container = L.DomUtil.create('div', 'leaflet-custom-controls');
-                    
                     container.innerHTML = `
                         <div class="control-section">
                             <label for="acuifero-select">Selecciona un acuífero:</label>
@@ -58,22 +71,37 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     `;
-                    
-                    // --- LÓGICA MOVIDA AQUÍ ---
-                    // En lugar de buscar en 'document', buscamos dentro del 'container' que acabamos de crear.
-                    // Esto garantiza que los elementos existen.
                     this.nodes.aquiferSelect = container.querySelector('#acuifero-select');
                     this.nodes.opacitySlider = container.querySelector('#opacity-slider');
                     this.nodes.opacityValueSpan = container.querySelector('#opacity-value');
                     this.nodes.filterRadios = container.querySelectorAll('input[name="vulnerability"]');
-                    // -------------------------
-
                     L.DomEvent.disableClickPropagation(container);
                     return container;
                 }
             });
-
             new UiControl({ position: 'topright' }).addTo(this.leaflet.map);
+        },
+
+        setupEventListeners() {
+            this.nodes.aquiferSelect.addEventListener('change', e => this.handleAquiferSelect(e.target.value));
+            this.nodes.opacitySlider.addEventListener('input', e => this.handleOpacityChange(e.target.value));
+            this.nodes.filterRadios.forEach(radio => {
+                radio.addEventListener('change', e => this.handleFilterChange(e.target.value));
+            });
+        },
+        
+        async loadData() {
+            try {
+                const response = await fetch('data/Vulnerabilidad.geojson');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const geojsonData = await response.json();
+                this.leaflet.geojsonLayer = L.geoJson(geojsonData, { style: feature => this.getFeatureStyle(feature), onEachFeature: (feature, layer) => { this.processFeature(feature, layer); } }).addTo(this.leaflet.map);
+                this.populateAquiferSelect();
+                this.updateView();
+            } catch (error) {
+                console.error("Error crítico al cargar los datos:", error);
+                alert("No se pudo cargar la capa de datos. Revisa la consola (F12) para más detalles.");
+            }
         },
 
         // --- 4. MANEJADORES DE ESTADO (Actualizan el estado y disparan el render) ---
