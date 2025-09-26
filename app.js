@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const GeovisorApp = {
 
-        // --- 1. CONFIGURACIÓN Y ESTADO ---
+// --- 1. CONFIGURACIÓN Y ESTADO ---
         CONFIG: { /* ...sin cambios... */ },
         state: { /* ...sin cambios... */ },
         nodes: {}, 
@@ -11,36 +11,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- 2. MÉTODO DE INICIALIZACIÓN ---
         init() {
-            // El orden ahora es importante: crear el mapa primero, luego buscar nodos.
             this.initMap();
-            this.cacheDomNodes();
+            // cacheDomNodes ya no es necesario aquí
             this.setupEventListeners();
             this.loadData();
         },
 
         // --- 3. MÉTODOS DE CONFIGURACIÓN INICIAL ---
-        cacheDomNodes() {
-            this.nodes.mapContainer = document.getElementById(this.CONFIG.mapId);
-            // Estos elementos ahora se buscan DENTRO del panel de control
-            this.nodes.aquiferSelect = document.getElementById('acuifero-select');
-            this.nodes.opacitySlider = document.getElementById('opacity-slider');
-            this.nodes.opacityValueSpan = document.getElementById('opacity-value');
-            this.nodes.filterRadios = document.querySelectorAll('input[name="vulnerability"]');
-        },
         
+        // ELIMINADO: cacheDomNodes() ya no es un método separado. Su lógica se ha movido a initUiControls().
+
         initMap() {
             const initialLayer = this.CONFIG.tileLayers["Neutral (defecto)"];
             this.leaflet.map = L.map(this.CONFIG.mapId, { center: this.CONFIG.initialCoords, zoom: this.CONFIG.initialZoom, layers: [initialLayer] });
             L.control.layers(this.CONFIG.tileLayers).addTo(this.leaflet.map);
             this.initLegend();
             this.initLogoControl();
-            this.initUiControls(); // <-- AÑADIR ESTA LLAMADA
+            this.initUiControls(); 
         },
         
-        // NUEVO MÉTODO PARA CREAR EL PANEL DE CONTROLES FLOTANTE
+        // MODIFICADO: Este método ahora también se encarga de cachear los nodos que crea.
         initUiControls() {
             const UiControl = L.Control.extend({
-                onAdd: function(map) {
+                // Usamos una función de flecha para mantener el contexto de 'this' apuntando a GeovisorApp
+                onAdd: (map) => {
                     const container = L.DomUtil.create('div', 'leaflet-custom-controls');
                     
                     container.innerHTML = `
@@ -65,7 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                     
-                    // Evitar que los clics en el panel se propaguen al mapa
+                    // --- LÓGICA MOVIDA AQUÍ ---
+                    // En lugar de buscar en 'document', buscamos dentro del 'container' que acabamos de crear.
+                    // Esto garantiza que los elementos existen.
+                    this.nodes.aquiferSelect = container.querySelector('#acuifero-select');
+                    this.nodes.opacitySlider = container.querySelector('#opacity-slider');
+                    this.nodes.opacityValueSpan = container.querySelector('#opacity-value');
+                    this.nodes.filterRadios = container.querySelectorAll('input[name="vulnerability"]');
+                    // -------------------------
+
                     L.DomEvent.disableClickPropagation(container);
                     return container;
                 }
