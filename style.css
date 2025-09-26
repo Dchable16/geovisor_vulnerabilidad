@@ -2,10 +2,13 @@
 :root {
     --header-height: 70px;
     --header-bg: #989899;
+    --panel-width: 320px;
     --panel-bg: rgba(255, 255, 255, 0.9);
     --panel-shadow: 0 1px 7px rgba(0,0,0,0.3);
     --border-radius: 5px;
     --accent-color: #2b82d4;
+    --animation-speed: 0.4s;
+    --animation-easing: cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 html, body {
@@ -16,7 +19,7 @@ html, body {
     overflow: hidden;
 }
 
-/* --- 2. LAYOUT PRINCIPAL A PANTALLA COMPLETA --- */
+/* --- 2. LAYOUT PRINCIPAL --- */
 body {
     display: flex;
     flex-direction: column;
@@ -50,51 +53,60 @@ body {
     height: 100%;
 }
 
-/* --- 3. CONTROLES PERSONALIZADOS DE LEAFLET --- */
+/* --- 3. PANEL DE CONTROLES PERSONALIZADO --- */
 
-/* Contenedor del Panel de Controles Principal (MODIFICADO para animación lateral) */
+/* Contenedor principal del panel */
 .leaflet-custom-controls {
     background: var(--panel-bg);
     padding: 15px;
     border-radius: var(--border-radius);
     box-shadow: var(--panel-shadow);
-    width: 320px; /* Ancho fijo para la animación */
+    width: var(--panel-width);
     box-sizing: border-box;
-    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
-    transform: translateX(0); /* Estado visible */
-    opacity: 1;
+    transition: transform var(--animation-speed) var(--animation-easing);
+    transform: translateX(0); /* Estado por defecto: visible */
+    position: relative;
 }
 
 .leaflet-custom-controls.collapsed {
-    transform: translateX(-100%); /* Desplazar a la izquierda */
-    opacity: 0;
-    padding: 15px 0; /* Evita que el contenido se vea mientras se encoge */
+    transform: translateX(var(--panel-width)); /* Mueve el panel fuera de la pantalla */
 }
 
-
-/* Botón para desplegar el panel (MODIFICADO para posicionamiento) */
-.leaflet-custom-toggle-button {
-    background-color: white;
+/* Botón de despliegue interno */
+.panel-toggle-button {
+    position: absolute;
+    right: 100%; /* Se coloca a la izquierda del panel */
+    top: 0;
     width: 34px;
     height: 34px;
+    background-color: white;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     font-size: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--panel-shadow);
-    /* Se posiciona junto al panel colapsado */
-    transition: transform 0.4s ease-in-out;
-    transform: translateX(0);
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    box-shadow: -2px 1px 5px rgba(0,0,0,0.4);
+    transition: background-color 0.2s;
 }
 
-.leaflet-custom-toggle-button.panel-collapsed {
-    transform: translateX(calc(320px + 10px)); /* Mover el botón a la derecha del panel oculto */
+.panel-toggle-button:hover {
+    background-color: #f4f4f4;
 }
 
+/* Elementos de UI dentro del panel */
+.control-section { margin-bottom: 15px; }
+.control-section:last-child { margin-bottom: 0; }
+.control-section > label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
+.control-section h1 { text-align: center; color: #333; margin-top: 0; margin-bottom: 20px; font-size: 1.5em; line-height: 1.2; }
+#acuifero-select, #opacity-slider { width: 100%; box-sizing: border-box; }
+#acuifero-select { padding: 5px; border-radius: 3px; border: 1px solid #ccc; }
+.radio-group label { display: inline-block; background-color: #eee; padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; border-radius: 15px; cursor: pointer; margin: 0 4px 5px 0; }
+.radio-group input[type="radio"] { opacity: 0; position: fixed; width: 0; }
+.radio-group input[type="radio"]:checked + label { background-color: var(--accent-color); border-color: var(--accent-color); color: white; }
 
-/* Leyenda (Simbologia) (MODIFICADO: Estilo restaurado) */
+/* --- 4. OTROS CONTROLES LEAFLET --- */
+
 .info.legend {
     background: var(--panel-bg);
     padding: 10px 15px;
@@ -106,37 +118,12 @@ body {
 .info.legend h4 { margin: 0 0 10px; font-size: 16px; text-align: center; }
 .info.legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border: 1px solid #666; }
 
-/* Logo SSSIG */
-.leaflet-control.leaflet-logo-control {
-    background: transparent; border: none; box-shadow: none; margin: 0 !important;
-}
-.leaflet-logo-control img {
-    height: 20px; width: auto; display: block;
-}
+.leaflet-control.leaflet-logo-control { background: transparent; border: none; box-shadow: none; margin: 0 !important; }
+.leaflet-logo-control img { height: 20px; width: auto; display: block; }
 
-/* --- 4. ELEMENTOS DE UI DENTRO DEL PANEL DE CONTROLES --- */
-.control-section { margin-bottom: 15px; }
-.control-section:last-child { margin-bottom: 0; }
-.control-section > label {
-    display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;
-}
-.control-section h1 {
-    text-align: center; color: #333; margin-top: 0; margin-bottom: 20px; font-size: 1.8em;
-}
-
-#acuifero-select, #opacity-slider { width: 100%; box-sizing: border-box; }
-#acuifero-select { padding: 5px; border-radius: 3px; border: 1px solid #ccc; }
-.radio-group label { display: inline-block; background-color: #eee; padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; border-radius: 15px; cursor: pointer; margin: 0 4px 5px 0; }
-.radio-group input[type="radio"] { opacity: 0; position: fixed; width: 0; }
-.radio-group input[type="radio"]:checked + label { background-color: var(--accent-color); border-color: var(--accent-color); color: white; }
-
-
-/* --- 5. MEDIA QUERIES PARA RESPONSIVIDAD --- */
+/* --- 5. RESPONSIVIDAD --- */
 @media (max-width: 768px) {
-    .main-header { height: 60px; }
+    :root { --header-height: 60px; --panel-width: calc(100vw - 60px); }
     .logo-container img { height: 40px; }
-    .leaflet-custom-controls { width: calc(100vw - 60px); }
-    .leaflet-custom-toggle-button.panel-collapsed { transform: translateX(calc(100vw - 60px + 10px)); }
-    .info.legend { font-size: 11px; }
-    .info.legend i { width: 14px; height: 14px; }
+    .control-section h1 { font-size: 1.2em; }
 }
