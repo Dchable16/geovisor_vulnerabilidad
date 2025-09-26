@@ -1,9 +1,10 @@
 .main-header {
     display: flex;
-    justify-content: space-between; /* Empuja los elementos hijos a los extremos */
+    justify-content: space-between;
     align-items: center;
     padding: 15px 2.5%;
-    background-color: #ffffff;
+    /* -- El color de fondo se cambia aquí -- */
+    background-color: #989899; 
     border-bottom: 1px solid #e0e0e0;
 }
 
@@ -21,7 +22,7 @@
 }
 
 .logo-container img {
-    height: 60px; /* Altura uniforme para los logos del header */
+    height: 60px;
     width: auto;
     object-fit: contain;
 }
@@ -152,8 +153,10 @@ body {
 
 #floating-logo {
     position: fixed;
-    bottom: 15px;
-    right: 15px;
+    /* -- Las coordenadas se cambian aquí -- */
+    bottom: 20px;   /* A 20px del borde inferior */
+    left: 20px;     /* A 20px del borde izquierdo */
+    /* La propiedad 'right' se elimina o se establece en 'auto' */
     z-index: 1001;
     opacity: 0.9;
     transition: opacity 0.2s ease-in-out;
@@ -164,8 +167,7 @@ body {
 }
 
 #floating-logo img {
-    /* -- El tamaño se reduce aquí -- */
-    height: 20px; /* Ajustado de 50px a 40px */
+    height: 40px;
     width: auto;
     display: block;
 }
