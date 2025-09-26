@@ -6,30 +6,23 @@
     background-color: #ffffff;
     border-bottom: 1px solid #e0e0e0;
 }
-.main-header h1 {
-    flex-grow: 1;
-    text-align: center;
-    margin: 0 20px;
-    font-size: 1.5em;
-    color: #333;
-}
-.logo-container {
+.logo-group {
     display: flex;
     align-items: center;
-    flex-basis: 200px;
+    gap: 30px; /* Espacio moderno y limpio entre logos */
 }
-.logo-left {
-    justify-content: flex-start;
-}
-.logo-right {
-    justify-content: flex-end;
-}
-.logo-container img {
-    height: 60px;
+
+.logo-group img {
+    height: 60px; /* Altura uniforme para los logos del header */
     width: auto;
     object-fit: contain;
 }
-
+.container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 25px; /* Espacio debajo del título */
+    font-size: 1.8em;
+}
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -151,20 +144,21 @@ body {
 }
 
 #floating-logo {
-    position: fixed; /* Lo saca del flujo normal y lo posiciona relativo a la ventana */
-    bottom: 15px;    /* A 15px del borde inferior */
-    right: 15px;     /* A 15px del borde derecho */
-    z-index: 1001;   /* Un valor alto para asegurar que esté sobre el mapa y sus controles */
-    opacity: 0.9;    /* Ligera transparencia para que no sea tan intrusivo */
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    z-index: 1001;
+    opacity: 0.9;
     transition: opacity 0.2s ease-in-out;
 }
 
 #floating-logo:hover {
-    opacity: 1; /* Totalmente opaco al pasar el ratón */
+    opacity: 1;
 }
 
 #floating-logo img {
-    height: 50px; /* Un tamaño un poco más discreto que los del header */
+    /* -- El tamaño se reduce aquí -- */
+    height: 40px; /* Ajustado de 50px a 40px */
     width: auto;
-    display: block; /* Evita espacios extra debajo de la imagen */
+    display: block;
 }
