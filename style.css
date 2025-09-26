@@ -26,18 +26,21 @@
     width: auto;
     object-fit: contain;
 }
+
 .container h1 {
     text-align: center;
     color: #333;
     margin-bottom: 25px; /* Espacio debajo del título */
     font-size: 1.8em;
 }
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
 }
+
 .container {
     width: 95%;
     max-width: 1200px;
@@ -151,23 +154,15 @@ body {
     color: white;
 }
 
-#floating-logo {
-    position: fixed;
-    /* -- Las coordenadas se cambian aquí -- */
-    bottom: 20px;   /* A 20px del borde inferior */
-    left: 20px;     /* A 20px del borde izquierdo */
-    /* La propiedad 'right' se elimina o se establece en 'auto' */
-    z-index: 1001;
-    opacity: 0.9;
-    transition: opacity 0.2s ease-in-out;
+.leaflet-control.leaflet-logo-control {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    margin: 0 !important;
 }
 
-#floating-logo:hover {
-    opacity: 1;
-}
-
-#floating-logo img {
-    height: 40px;
+.leaflet-logo-control img {
+    height: 20px; /* Tamaño solicitado */
     width: auto;
     display: block;
 }
