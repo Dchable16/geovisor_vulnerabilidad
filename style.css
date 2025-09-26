@@ -1,38 +1,48 @@
-/* --- LAYOUT GLOBAL A PANTALLA COMPLETA --- */
+/* --- 1. VARIABLES GLOBALES Y RESET --- */
+:root {
+    --header-height: 70px;
+    --header-bg: #989899;
+    --panel-bg: rgba(255, 255, 255, 0.9);
+    --panel-shadow: 0 1px 7px rgba(0,0,0,0.3);
+    --border-radius: 5px;
+    --accent-color: #2b82d4;
+}
+
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
-    overflow: hidden; /* Evita barras de scroll innecesarias */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    overflow: hidden;
 }
 
+/* --- 2. LAYOUT PRINCIPAL A PANTALLA COMPLETA --- */
 body {
     display: flex;
-    flex-direction: column; /* Apila el header y el mapa verticalmente */
+    flex-direction: column;
 }
 
-/* --- ESTILOS DEL HEADER --- */
 .main-header {
-    flex-shrink: 0; /* Evita que el header se encoja */
+    flex-shrink: 0;
+    height: var(--header-height);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 2.5%;
-    background-color: #E2E2E2;
-    border-bottom: 1px solid #777;
-    z-index: 2000; /* Asegura que esté por encima del mapa */
+    padding: 0 2.5%;
+    background-color: var(--header-bg);
+    box-sizing: border-box;
+    z-index: 2000;
 }
 
 .logo-container img {
     height: 50px;
     width: auto;
+    object-fit: contain;
 }
 
-/* --- ESTILOS DEL CONTENEDOR DEL MAPA --- */
 .map-container {
-    flex-grow: 1; /* Hace que este contenedor ocupe todo el espacio vertical restante */
-    position: relative;
+    flex-grow: 1;
+    background-color: #f4f4f4;
 }
 
 #map {
@@ -40,58 +50,85 @@ body {
     height: 100%;
 }
 
+/* --- 3. CONTROLES PERSONALIZADOS DE LEAFLET --- */
 
-/* --- ESTILOS PARA EL PANEL DE CONTROLES FLOTANTE --- */
+/* Contenedor del Panel de Controles Principal */
 .leaflet-custom-controls {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--panel-bg);
     padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    max-width: 300px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--panel-shadow);
+    max-width: 320px;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+    max-height: 600px;
+    overflow: hidden;
+    opacity: 1;
 }
 
-.control-section {
-    margin-bottom: 15px;
-}
-.control-section:last-child {
-    margin-bottom: 0;
-}
-
-.control-section label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 8px;
-    font-size: 14px;
+.leaflet-custom-controls.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
 }
 
-#acuifero-select, #opacity-slider {
-    width: 100%;
+/* Botón para desplegar el panel */
+.leaflet-custom-toggle-button {
+    background-color: white;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--panel-shadow);
+}
+.leaflet-custom-toggle-button:hover {
+    background-color: #f4f4f4;
 }
 
-.radio-group label {
-    background-color: #ddd; padding: 5px 10px; font-size: 12px; border: 2px solid #ddd; border-radius: 4px; cursor: pointer; margin: 0 2px 5px 0; display: inline-block;
-}
-.radio-group input[type="radio"] { opacity: 0; position: fixed; width: 0; }
-.radio-group input[type="radio"]:checked + label { background-color: #2b82d4; border-color: #2b82d4; color: white; }
-
-
-/* --- ESTILOS DE OTROS CONTROLES LEAFLET (CON LA CORRECCIÓN) --- */
-
-/* LOGO INFERIOR IZQUIERDO */
-.leaflet-control.leaflet-logo-control { background: transparent; border: none; box-shadow: none; margin: 0 !important; }
-.leaflet-logo-control img { height: 30px; width: auto; display: block; }
-
-/* LEYENDA (SIMBOLOGIA) */
+/* Leyenda */
 .info.legend {
-    /* --- PROPIEDADES RESTAURADAS --- */
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    /* --- FIN DE PROPIEDADES RESTAURADAS --- */
-    
-    line-height: 1.8; 
+    background: var(--panel-bg);
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--panel-shadow);
+    line-height: 1.8;
     color: #333;
 }
-.info.legend h4 { margin: 0 0 10px; font-size: 16px; text-align: center; }
-.info.legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border: 1px solid #666; }
+
+/* Logo SSSIG */
+.leaflet-control.leaflet-logo-control {
+    background: transparent; border: none; box-shadow: none; margin: 0 !important;
+}
+.leaflet-logo-control img {
+    height: 20px; width: auto; display: block;
+}
+
+/* --- 4. ELEMENTOS DE UI DENTRO DEL PANEL DE CONTROLES --- */
+.control-section { margin-bottom: 15px; }
+.control-section:last-child { margin-bottom: 0; }
+.control-section > label {
+    display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;
+}
+.control-section h1 {
+    text-align: center; color: #333; margin-top: 0; margin-bottom: 20px; font-size: 1.8em;
+}
+
+#acuifero-select, #opacity-slider { width: 100%; box-sizing: border-box; }
+#acuifero-select { padding: 5px; border-radius: 3px; border: 1px solid #ccc; }
+.radio-group label { display: inline-block; background-color: #eee; padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; border-radius: 15px; cursor: pointer; margin: 0 4px 5px 0; }
+.radio-group input[type="radio"] { opacity: 0; position: fixed; width: 0; }
+.radio-group input[type="radio"]:checked + label { background-color: var(--accent-color); border-color: var(--accent-color); color: white; }
+
+
+/* --- 5. MEDIA QUERIES PARA RESPONSIVIDAD --- */
+@media (max-width: 768px) {
+    .main-header { height: 60px; }
+    .logo-container img { height: 40px; }
+    .leaflet-custom-controls { max-width: calc(100vw - 60px); }
+    .info.legend { font-size: 11px; }
+    .info.legend i { width: 14px; height: 14px; }
+}
