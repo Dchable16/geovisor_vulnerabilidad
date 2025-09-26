@@ -62,15 +62,17 @@ body {
 /* --- 3. PANEL DE CONTROLES DESLIZABLE (IZQUIERDA) --- */
 .leaflet-custom-controls {
     background: var(--panel-bg);
-    backdrop-filter: blur(4px); /* Efecto "frosty glass" */
     padding: 15px;
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
     box-shadow: var(--panel-shadow);
     width: var(--panel-width);
     box-sizing: border-box;
     transition: transform var(--animation-speed) var(--animation-easing);
-    transform: translateX(0); /* Estado visible por defecto */
-    position: relative;
+    position: absolute;
+    top: 10px; /* Anclado a 10px desde arriba */
+    left: 0;   /* Anclado a la izquierda */
+    z-index: 1000;
+    transform: translateX(0); /* Estado por defecto: visible */
 }
 
 .leaflet-custom-controls.collapsed {
@@ -90,16 +92,17 @@ body {
     border-radius: var(--border-radius);
     box-shadow: var(--panel-shadow);
     opacity: 0;
-    pointer-events: none; /* Evita clics cuando es invisible */
-    transform: scale(0.8); /* Efecto sutil de aparición */
+    pointer-events: none;
+    transform: scale(0.8);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    transition-delay: 0s; 
+    transition-delay: 0s;
+    margin-top: 54px;
 }
 .leaflet-custom-controls.collapsed + .leaflet-open-button {
     opacity: 1;
     pointer-events: auto; /* Permite clics */
     transform: scale(1);
-    transition-delay: 0.2s; 
+    transition-delay: 0.3s; 
 }
 
 /* Botón para CERRAR el panel (flecha interna) */
