@@ -79,7 +79,7 @@ body {
 
 /* LOGO INFERIOR IZQUIERDO */
 .leaflet-control.leaflet-logo-control { background: transparent; border: none; box-shadow: none; margin: 0 !important; }
-.leaflet-logo-control img { height: 20px; width: auto; display: block; }
+.leaflet-logo-control img { height: 30px; width: auto; display: block; }
 
 /* LEYENDA (SIMBOLOGIA) */
 .info.legend {
