@@ -18,48 +18,13 @@
         </div>
     </header>
 
-    <div class="container">
-        <h1>Vulnerabilidad a la Intrusión Salina en Acuíferos de México</h1>
-        
-        <div class="selector-container">
-            <label for="acuifero-select">Selecciona un acuífero para hacer zoom:</label>
-            <select id="acuifero-select">
-                <option value="">-- Mostrar todos los acuíferos --</option>
-            </select>
-        </div>
-
-        <div class="opacity-container">
-            <label for="opacity-slider">Opacidad general:</label>
-            <input id="opacity-slider" type="range" min="0" max="1" step="0.05" value="0.6">
-            <span id="opacity-value">60%</span>
-        </div>
-
-        <div class="filter-container">
-            <label>Iluminar por vulnerabilidad:</label>
-            <div class="radio-group">
-                <input type="radio" id="vul-todos" name="vulnerability" value="all" checked>
-                <label for="vul-todos">Todos</label>
-                
-                <input type="radio" id="vul-1" name="vulnerability" value="1">
-                <label for="vul-1">1</label>
-
-                <input type="radio" id="vul-2" name="vulnerability" value="2">
-                <label for="vul-2">2</label>
-
-                <input type="radio" id="vul-3" name="vulnerability" value="3">
-                <label for="vul-3">3</label>
-
-                <input type="radio" id="vul-4" name="vulnerability" value="4">
-                <label for="vul-4">4</label>
-
-                <input type="radio" id="vul-5" name="vulnerability" value="5">
-                <label for="vul-5">5</label>
-            </div>
-        </div>
-        
+    <!-- Este contenedor ahora es parte del layout a pantalla completa -->
+    <div class="map-container">
         <div id="map"></div>
     </div>
-
+    
+    <!-- Los controles ya no están aquí -->
+    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
 
