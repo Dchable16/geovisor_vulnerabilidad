@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             legend.addTo(this.leaflet.map);
         }
         
-        initLogoControl() {
+         initLogoControl() {
             // 1. Crear una nueva clase de control en la posición 'bottomleft'
             const LogoControl = L.Control.extend({
                 onAdd: function(map) {
