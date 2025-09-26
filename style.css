@@ -81,10 +81,6 @@ body {
 
 /* Botón para ABRIR el panel (hamburguesa) */
 .leaflet-open-button {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 1001; /* Ligeramente por encima del panel por si acaso */
     background-color: white;
     width: 34px;
     height: 34px;
