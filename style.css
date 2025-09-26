@@ -135,7 +135,8 @@ body {
 @media (max-width: 768px) {
     .main-header { height: 60px; }
     .logo-container img { height: 40px; }
-    .leaflet-custom-controls { max-width: calc(100vw - 60px); }
+    .leaflet-custom-controls { width: calc(100vw - 60px); }
+    .leaflet-custom-toggle-button.panel-collapsed { transform: translateX(calc(100vw - 60px + 10px)); }
     .info.legend { font-size: 11px; }
     .info.legend i { width: 14px; height: 14px; }
 }
