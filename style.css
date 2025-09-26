@@ -19,7 +19,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 10px 2.5%;
-    background-color: ##D6D6D6;
+    background-color: #989899;
     border-bottom: 1px solid #777;
     z-index: 2000; /* Asegura que esté por encima del mapa */
 }
