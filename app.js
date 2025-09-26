@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             initialCoords: [23.6345, -102.5528],
             initialZoom: 5,
             tileLayers: {
-                "Neutral (defecto)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
+                "Neutral (ESRI)": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
                 "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
                 "Estándar (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
                 "Satélite (ESRI)": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             L.control.layers(this.CONFIG.tileLayers).addTo(this.leaflet.map);
             this.initLegend();
+            this.initLogoControl();
         },
 
         setupEventListeners() {
@@ -226,6 +227,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 return div;
             };
             legend.addTo(this.leaflet.map);
+        }
+        
+        initLogoControl() {
+            // 1. Crear una nueva clase de control en la posición 'bottomleft'
+            const LogoControl = L.Control.extend({
+                onAdd: function(map) {
+                    // 2. Crear el elemento HTML (un div que contendrá la imagen)
+                    const container = L.DomUtil.create('div', 'leaflet-logo-control');
+                    container.innerHTML = `<img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_SSSIG.png" alt="Logo SSSIG">`;
+                    
+                    // 3. Importante: Deshabilitar la propagación de eventos del mapa al logo
+                    L.DomEvent.disableClickPropagation(container);
+                    
+                    return container;
+                }
+            });
+
+            // 4. Instanciar y añadir el nuevo control al mapa
+            new LogoControl({ position: 'bottomleft' }).addTo(this.leaflet.map);
         }
     };
 
