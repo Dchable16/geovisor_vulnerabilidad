@@ -1,297 +1,167 @@
 <!DOCTYPE html>
 
 <html lang="es">
-
 <head>
 
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <meta name="description" content="Geovisor web interactivo de vulnerabilidad a la intrusión salina y propiedades hidráulicas en acuíferos de México.">
-
     <title>Geovisor de Vulnerabilidad e Hidráulica</title>
 
-
-
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">    
-
     <link rel="stylesheet" href="CSS/leaflet.css" />
-
     <link rel="stylesheet" href="style.css">
 
     
 
     <style>
-
         .theme-switch {
-
             display: flex;
-
             border: 1px solid #ccc;
-
             border-radius: 5px;
-
             overflow: hidden;
-
             margin-top: 5px;
-
         }
 
         .theme-btn {
-
             flex: 1;
-
             padding: 8px;
-
             border: none;
-
             background: #f0f0f0;
-
             cursor: pointer;
-
             font-size: 0.9rem;
-
             transition: background 0.3s;
-
         }
 
         .theme-btn.active {
-
             background: #007BFF;
-
             color: white;
-
             font-weight: bold;
-
         }
 
         .theme-btn:hover:not(.active) {
-
             background: #e0e0e0;
-
         }
 
     </style>
-
 </head>
-
 <body>
 
-
-
     <header class="main-header">
-
         <div class="logo-container">
-
             <img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_Conagua.png" alt="Logo CONAGUA">
-
         </div>
-
         <div class="logo-container">
-
             <img src="https://raw.githubusercontent.com/Dchable16/geovisor_vulnerabilidad/main/logos/Logo_Mujer_Indigena.png" alt="Logo Mujer Indígena">
-
         </div>
-
     </header>
 
-
-
     <main class="map-container">
-
         <div id="map"></div>
-
         <div class="loader-overlay" id="app-loader" style="display: none;">
-
             <div class="spinner"></div>
-
             <p class="loader-text">Cargando Datos Geográficos...</p> 
-
         </div>
-
     </main>
 
-
-
     <template id="panel-template">
-
         <div class="panel-close-button" title="Ocultar controles">«</div>
-
         <h1>Geovisor de Acuíferos</h1>
-
-        
-
-        <div class="control-section theme-selector-container">
-
+              <div class="control-section theme-selector-container">
             <label>Modo de Visualización:</label>
-
             <div class="theme-switch">
-
                 <button id="btn-theme-vulnerability" class="theme-btn active">Vulnerabilidad</button>
-
                 <button id="btn-theme-hydraulics" class="theme-btn">Párametros Hidrodinámicos</button>
-
             </div>
-
         </div>
 
-
-
         <div class="control-section">
-
             <label for="search-input">Buscar acuífero (por Nombre o Clave):</label>
-
             <input type="text" id="search-input" placeholder="Escribe aquí para buscar...">
-
             <div id="search-results-container"></div>
-
         </div>
-
-        
-
+       
         <div class="control-section">
-
             <label for="acuifero-select">Selecciona un acuífero:</label>
-
             <select id="acuifero-select"><option value="">-- Mostrar todos --</option></select>
-
         </div>
 
         
 
         <div class="control-section reset-section">
-
             <button id="reset-button" class="action-button">Restablecer Vista y Filtros</button>
-
         </div>
 
         
 
         <div class="control-section">
-
             <label>Ir a Coordenadas (Lat, Lon):</label>
-
             <input type="text" id="coord-name" placeholder="Nombre para el marcador (opcional)">
-
             <div class="coord-input-group">
-
                 <input type="number" id="coord-lat" placeholder="Latitud (ej. 19.43)">
-
                 <input type="number" id="coord-lon" placeholder="Longitud (ej. -99.13)">
-
             </div>
 
             <button id="goto-coords-button" class="action-button" style="margin-top: 10px;">Ubicar en Mapa</button>
-
             <div id="coord-error-message"></div>
-
         </div>
-
-
 
         <div class="control-section">
-
             <label for="opacity-slider">Opacidad general: <span id="opacity-value"></span></label>
-
             <input id="opacity-slider" type="range" min="0" max="1" step="0.05">
-
         </div>
-
-
 
         <div class="control-section" id="vulnerability-specific-controls">
-
             <label>Iluminar por vulnerabilidad:</label>
-
             <div class="radio-group" id="vulnerability-radio-group">
-
                 <input type="radio" id="vul-todos" name="vulnerability" value="all" checked><label for="vul-todos">Todos</label>
-
             </div>
 
         </div>
-
-
 
         <div class="control-section">
-
             <label>Capas Adicionales:</label>
-
-            
-
+           
             <div class="layer-toggle" style="margin-top: 10px;">
-
                 <span>Mostrar Pozos</span>
-
                 <label class="switch">
-
                     <input type="checkbox" id="wells-toggle">
-
                     <span class="slider"></span>
-
                 </label>
-
             </div>
 
 
 
             <div class="layer-toggle" style="margin-top: 10px;">
-
                 <span>Línea de Costa (10km)</span>
-
                 <label class="switch"><input type="checkbox" id="coastline-toggle"><span class="slider"></span></label>
-
             </div>
 
             <div class="layer-toggle" style="margin-top: 10px;">
-
                 <span>Línea de Costa (1km)</span>
-
                 <label class="switch"><input type="checkbox" id="coastline-1km-toggle"><span class="slider"></span></label>
-
             </div>
 
             <div class="layer-toggle" style="margin-top: 10px;">
-
                 <span>Mallado (Lat/Lon)</span>
-
                 <label class="switch"><input type="checkbox" id="graticule-toggle"><span class="slider"></span></label>
-
             </div>
-
         </div>
 
     </template>
-
-    
-
+   
     <template id="info-panel-template">
-
         <div class="info-panel-header">
-
             <h2 id="info-panel-title">Detalles</h2>
-
             <button class="info-panel-close" title="Cerrar">✕</button>
-
         </div>
-
         <div id="info-panel-content"></div>
-
     </template>
-
     
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>    
-
     <script type="module" src="js/main.js"></script>
 
-
-
 </body>
-
 </html>
