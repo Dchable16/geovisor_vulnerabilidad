@@ -4,61 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geovisor de Vulnerabilidad</title>
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="CSS/leaflet.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="main-header">
-        <div class="logo-container"><img src="logos/Logo_Conagua.png" alt="Conagua"></div>
-        <div class="logo-container"><img src="logos/Logo_SSIG.png" alt="SSIG"></div>
-    </header>
+        </header>
 
     <main class="map-container">
         <div id="map"></div>
-        <div class="loader-overlay" id="app-loader"><div class="spinner"></div><p>Cargando...</p></div>
     </main>
 
     <template id="panel-template">
-        <div class="panel-close-button">«</div>
-        <h1>Geovisor Acuíferos</h1>
-        <div class="control-section">
-            <label>Buscar:</label>
-            <input type="text" id="search-input" placeholder="Nombre...">
-            <div id="search-results-container"></div>
-        </div>
-        <div class="control-section">
-            <label>Seleccionar:</label>
-            <select id="acuifero-select"><option value="">-- Todos --</option></select>
-        </div>
-        <div class="control-section">
-            <button id="reset-button" class="action-button">Restablecer</button>
-        </div>
-        <div class="control-section">
-            <label>Opacidad: <span id="opacity-value">80%</span></label>
-            <input id="opacity-slider" type="range" min="0" max="1" step="0.1" value="0.8">
-        </div>
-        <div class="control-section">
-            <label>Filtro Vulnerabilidad:</label>
-            <div id="vulnerability-radio-group">
-                <label><input type="radio" name="vulnerability" value="all" checked> Todos</label>
-            </div>
-        </div>
-        <div class="control-section">
-            <label class="switch-label"><input type="checkbox" id="wells-toggle"> Pozos</label>
-            <label class="switch-label"><input type="checkbox" id="coastline-toggle"> Costa</label>
-        </div>
+        <h1>Geovisor</h1>
+        <input type="text" id="search-input">
+        <select id="acuifero-select"></select>
+        <input type="range" id="opacity-slider" min="0" max="1" step="0.1" value="0.8">
     </template>
 
-    <template id="info-panel-template">
-        <div class="info-panel-header">
-            <h2 id="info-panel-title"></h2>
-            <button class="info-panel-close">✕</button>
-        </div>
-        <div id="info-panel-content"></div>
-    </template>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     
     <script type="module" src="js/main.js"></script>
